@@ -3294,20 +3294,8 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
     }
 
     // Simulate Google Sign-In (replace with real Google OAuth later)
-    async function handleGoogleSignIn() {
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin
-    }
-  });
-
-  if (error) {
-    console.error('Google login error:', error);
-    alert('Google sign-in failed');
-  }
-}
-
+    function handleGoogleSignIn() {
+      // This is a DEMO function - you'll replace with real Google OAuth
       // For now, we'll simulate a successful sign-in
       
       // In production, you would:
