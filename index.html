@@ -3294,33 +3294,26 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
     }
 
     // Simulate Google Sign-In (replace with real Google OAuth later)
-    function handleGoogleSignIn() {
-      // This is a DEMO function - you'll replace with real Google OAuth
-      // For now, we'll simulate a successful sign-in
-      
-      // In production, you would:
-      // 1. Initialize Google Sign-In API
-      // 2. Get user credentials
-      // 3. Send to Supabase for verification
-      // 4. Store user session
-      
-      // DEMO: Simulate sign-in
-      const demoUser = {
-        id: 'demo_google_' + Date.now(),
-        email: 'user@gmail.com',
-        name: 'Google User',
-        photo: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233b82f6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>',
-        signedInAt: new Date().toISOString()
-      };
-      
-      currentUser = demoUser;
-      localStorage.setItem('123Reminder_user', JSON.stringify(demoUser));
-      
-      updateUIForSignedInUser();
-      hideAuthModal();
-      
-      // Show success message
-      alert('✅ Signed in with Google!\n\nIn production, this will use real Google OAuth and sync your data to the cloud.');
+    async function handleGoogleSignIn() {
+      try {
+        // Sign in with Google using Supabase
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin
+          }
+        });
+
+        if (error) throw error;
+
+        // Supabase will redirect to Google for authentication
+        // After successful auth, user will be redirected back here
+        // The session will be automatically established
+        
+      } catch (error) {
+        console.error('Google sign-in error:', error);
+        alert(`❌ Google sign-in failed: ${error.message}\n\nPlease make sure Google OAuth is properly configured in Supabase.`);
+      }
     }
 
     // Handle Email/Password Sign-In
