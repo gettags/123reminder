@@ -2560,6 +2560,7 @@
     const emailRemindersBtn = document.getElementById("emailRemindersBtn");
     const welcomeBanner = document.getElementById("welcomeBanner");
     const welcomeUserName = document.getElementById("welcomeUserName");
+    const upgradeBanner = document.getElementById("upgradeBanner");
     
     // Notification elements
     const notificationModal = document.getElementById("notificationModal");
@@ -3251,13 +3252,22 @@
 
     function updateUIForSignedInUser() {
       if (currentUser) {
-        // Hide sign-in elements
+        console.log('Updating UI for signed in user:', currentUser.name); // Debug
+        
+        // Hide sign-in elements and upgrade banner
         signinBtn.style.display = 'none';
         signinBanner.style.display = 'none';
+        if (upgradeBanner) upgradeBanner.style.display = 'none';
         
-        // Show welcome banner
-        welcomeBanner.style.display = 'block';
-        welcomeUserName.textContent = currentUser.name || 'there';
+        // Show welcome banner (replaces upgrade banner)
+        if (welcomeBanner) {
+          welcomeBanner.style.display = 'flex';
+          console.log('Welcome banner shown'); // Debug
+        }
+        if (welcomeUserName) {
+          welcomeUserName.textContent = currentUser.name || 'there';
+          console.log('Welcome name set to:', currentUser.name); // Debug
+        }
         
         // Show user profile and logout button
         userDropdown.style.display = 'block';
@@ -3279,12 +3289,13 @@
     }
 
     function updateUIForSignedOutUser() {
-      // Show sign-in elements
+      // Show sign-in elements and upgrade banner
       signinBtn.style.display = 'inline-flex';
       signinBanner.style.display = 'flex';
+      if (upgradeBanner) upgradeBanner.style.display = 'flex';
       
       // Hide welcome banner
-      welcomeBanner.style.display = 'none';
+      if (welcomeBanner) welcomeBanner.style.display = 'none';
       
       // Hide user profile, logout button, and email reminders button
       userDropdown.style.display = 'none';
@@ -3599,11 +3610,21 @@ You can change these settings anytime from your account menu.
         const { data: { session } } = await supabaseClient.auth.getSession();
         
         if (session) {
+          // Get name from Google OAuth or user metadata
+          const userName = session.user.user_metadata?.full_name || 
+                          session.user.user_metadata?.name || 
+                          session.user.identities?.[0]?.identity_data?.full_name ||
+                          session.user.identities?.[0]?.identity_data?.name ||
+                          session.user.email.split('@')[0];
+          
           currentUser = {
             id: session.user.id,
             email: session.user.email,
-            name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+            name: userName,
+            photo: session.user.user_metadata?.avatar_url || session.user.identities?.[0]?.identity_data?.avatar_url,
           };
+          
+          console.log('User signed in:', currentUser); // Debug log
           
           // Load reminders from database
           await loadRemindersFromDB();
