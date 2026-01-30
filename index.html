@@ -3300,7 +3300,7 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin
+            redirectTo: 'https://123reminder.vercel.app'
           }
         });
 
