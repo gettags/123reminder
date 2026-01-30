@@ -1771,6 +1771,27 @@
       transform: translateY(-1px);
       box-shadow: var(--shadow-sm);
     }
+
+    .welcome-banner {
+      background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+      border: 2px solid var(--accent-primary);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -2131,6 +2152,21 @@
           </div>
         </div>
 
+        <!-- Welcome Message (Show for Signed In Users) -->
+        <div class="welcome-banner" id="welcomeBanner" style="display: none;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 32px;">👋</span>
+            <div>
+              <h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #1e40af;">
+                Hi <span id="welcomeUserName">there</span>!
+              </h3>
+              <p style="margin: 4px 0 0 0; font-size: 14px; color: #64748b;">
+                Welcome back to 123Reminder. Ready to organize your day?
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Sign In Banner (Show for Non-Signed In Users) -->
         <div class="signin-banner" id="signinBanner">
           <div class="signin-banner-text">
@@ -2143,11 +2179,11 @@
         <!-- Upgrade Banner (Show for Free Users Only) -->
         <div class="upgrade-banner" id="upgradeBanner">
           <div class="upgrade-banner-content">
-            <h3>⭐ Remove Ads + Get WhatsApp Reminders</h3>
-            <p>Upgrade to Premium for just ₹35/month</p>
+            <h3>⭐ WhatsApp Reminders - Coming Soon!</h3>
+            <p>Premium features launching soon for just ₹35/month</p>
           </div>
           <button class="upgrade-btn">
-            <span>🚀 Upgrade</span>
+            <span>🔔 Notify Me</span>
           </button>
         </div>
 
@@ -2304,6 +2340,9 @@
 
       <!-- Email/Password Form -->
       <div class="auth-form" id="authForm">
+        <div class="form-group">
+          <input type="text" class="auth-input" id="authName" placeholder="Your name (e.g., David, Sunil)" required>
+        </div>
         <div class="form-group">
           <input type="email" class="auth-input" id="authEmail" placeholder="Email address (any email works!)" required>
         </div>
@@ -2504,6 +2543,7 @@
     const authModal = document.getElementById("authModal");
     const googleSigninBtn = document.getElementById("googleSigninBtn");
     const emailSigninBtn = document.getElementById("emailSigninBtn");
+    const authName = document.getElementById("authName");
     const authEmail = document.getElementById("authEmail");
     const authPassword = document.getElementById("authPassword");
     const skipSignin = document.getElementById("skipSignin");
@@ -2518,6 +2558,8 @@
     const signOutBtn = document.getElementById("signOutBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const emailRemindersBtn = document.getElementById("emailRemindersBtn");
+    const welcomeBanner = document.getElementById("welcomeBanner");
+    const welcomeUserName = document.getElementById("welcomeUserName");
     
     // Notification elements
     const notificationModal = document.getElementById("notificationModal");
@@ -3213,6 +3255,10 @@
         signinBtn.style.display = 'none';
         signinBanner.style.display = 'none';
         
+        // Show welcome banner
+        welcomeBanner.style.display = 'block';
+        welcomeUserName.textContent = currentUser.name || 'there';
+        
         // Show user profile and logout button
         userDropdown.style.display = 'block';
         logoutBtn.style.display = 'inline-flex';
@@ -3236,6 +3282,9 @@
       // Show sign-in elements
       signinBtn.style.display = 'inline-flex';
       signinBanner.style.display = 'flex';
+      
+      // Hide welcome banner
+      welcomeBanner.style.display = 'none';
       
       // Hide user profile, logout button, and email reminders button
       userDropdown.style.display = 'none';
@@ -3285,12 +3334,9 @@ You'll receive a daily email at ${selectedNotificationTime} with all your remind
 📧 Sent to: ${currentUser.email}
 ⏰ Time: ${selectedNotificationTime}
 
-In production, this will:
-• Save to Supabase database
-• Schedule daily emails via Resend
-• Send beautifully formatted emails
+You can change these settings anytime from your account menu.
 
-Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
+💡 Want WhatsApp reminders too? Coming soon for just ₹35/month!`);
     }
 
     // Simulate Google Sign-In (replace with real Google OAuth later)
@@ -3300,7 +3346,7 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: 'https://123reminder.vercel.app'
+            redirectTo: 'https://123reminder.com'
           }
         });
 
@@ -3318,10 +3364,17 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
 
     // Handle Email/Password Sign-In
     async function handleEmailSignIn() {
+      const name = authName.value.trim();
       const email = authEmail.value.trim();
       const password = authPassword.value.trim();
 
       // Validation
+      if (!name) {
+        alert('⚠️ Please enter your name');
+        authName.focus();
+        return;
+      }
+
       if (!email) {
         alert('⚠️ Please enter your email address');
         authEmail.focus();
@@ -3360,25 +3413,48 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
             password: password,
             options: {
               data: {
-                name: email.split('@')[0]
+                name: name
               }
             }
           });
 
           if (signUpError) throw signUpError;
+          
+          // Update profile in database
+          await supabaseClient.from('profiles').upsert({
+            id: signUpData.user.id,
+            email: email,
+            name: name,
+            updated_at: new Date().toISOString()
+          });
+          
           data = signUpData;
-          alert(`✅ Account created! Welcome ${email}!`);
+          alert(`✅ Account created! Welcome ${name}!`);
         } else if (error) {
           throw error;
         } else {
-          alert(`✅ Welcome back, ${email}!`);
+          // User signed in - update name if provided
+          if (name && name !== data.user.user_metadata?.name) {
+            await supabaseClient.auth.updateUser({
+              data: { name: name }
+            });
+            
+            // Update profile in database
+            await supabaseClient.from('profiles').upsert({
+              id: data.user.id,
+              email: email,
+              name: name,
+              updated_at: new Date().toISOString()
+            });
+          }
+          alert(`✅ Welcome back, ${name || email}!`);
         }
 
         // Set current user
         currentUser = {
           id: data.user.id,
           email: data.user.email,
-          name: data.user.user_metadata?.name || email.split('@')[0],
+          name: name || data.user.user_metadata?.name || email.split('@')[0],
         };
 
         // Load reminders from database
@@ -3388,6 +3464,7 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
         hideAuthModal();
         
         // Clear form
+        authName.value = '';
         authEmail.value = '';
         authPassword.value = '';
         
@@ -3462,7 +3539,12 @@ Want WhatsApp too? Upgrade to Premium for ₹35/month!`);
     enableNotificationBtn.addEventListener('click', enableEmailNotifications);
     upgradeFromNotifBtn.addEventListener('click', () => {
       hideNotificationModal();
-      alert('🚀 Premium Upgrade\n\nIn production, this will open the payment page for ₹35/month premium subscription with WhatsApp notifications!');
+      alert('🚀 Coming Soon!\n\nWhatsApp notifications and Premium features are coming soon!\n\nStay tuned for:\n✅ WhatsApp daily reminders\n✅ Ad-free experience\n✅ Priority support\n\nPrice: ₹35/month');
+    });
+    
+    // Upgrade button handler (for Coming Soon message)
+    document.querySelector('.upgrade-btn')?.addEventListener('click', () => {
+      alert('🚀 Coming Soon!\n\nWhatsApp notifications and Premium features are coming soon!\n\nStay tuned for:\n✅ WhatsApp daily reminders\n✅ Ad-free experience\n✅ Priority support\n\nPrice: ₹35/month\n\n📧 Want to be notified when we launch? Make sure email notifications are enabled!');
     });
     
     // Time selector event listeners
