@@ -2148,6 +2148,9 @@
             <!-- Visible Logout Button (shown when signed in) -->
             <button class="action-btn" id="logoutBtn" style="display: none; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-color: #ef4444;">🚪 Logout</button>
             
+            <!-- Admin Panel Button (only for admin) -->
+            <button class="action-btn" id="adminPanelBtn" style="display: none; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border-color: #8b5cf6;">👨‍💼 Admin Panel</button>
+            
             <button class="action-btn" id="themeToggle">🌓 Theme</button>
           </div>
         </div>
@@ -2257,6 +2260,18 @@
         <div class="help-text">
           💡 <strong>Double-click</strong> any date to add reminders • <strong>Categories</strong> auto-detect from text • Data saved locally
         </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 30px 20px; margin-top: 40px; border-top: 1px solid var(--border-color); color: var(--text-secondary); font-size: 14px;">
+          <div style="margin-bottom: 15px;">
+            <a href="#" id="footerContactLink" style="color: var(--accent-primary); text-decoration: none; margin: 0 15px; font-weight: 500;">📧 Contact Us</a>
+            <a href="#" id="footerPrivacyLink" style="color: var(--accent-primary); text-decoration: none; margin: 0 15px;">🔒 Privacy Policy</a>
+            <a href="#" id="footerTermsLink" style="color: var(--accent-primary); text-decoration: none; margin: 0 15px;">📜 Terms of Service</a>
+          </div>
+          <div style="font-size: 12px; opacity: 0.7;">
+            © 2026 123Reminder. Made with ❤️ for productivity.
+          </div>
+        </div>
       </div>
 
       <!-- Bottom Ad Banner (Mobile & Desktop) - GOOGLE ADSENSE ONLY -->
@@ -2286,11 +2301,13 @@
         <div class="ad-placeholder">
           <h3>📢 Your Ad Here</h3>
           <p>300×250 Medium Rectangle</p>
-          <a href="/cdn-cgi/l/email-protection#630207102352515011060e0a0d0706114d000c0e" class="ad-contact">
+          <button class="ad-contact contact-us-btn" style="background: var(--accent-primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; margin: 10px auto;">
             <span>📧</span>
-            <span><span class="__cf_email__" data-cfemail="b4d5d0c7f4858687c6d1d9dddad0d1c69ad7dbd9">[email&#160;protected]</span></span>
-          </a>
-          <div class="ad-dimensions">Don't worry. We do check our emails</div>
+            <span>Contact Us for Ads</span>
+          </button>
+          <div class="ad-dimensions" style="margin-top: 8px; font-size: 11px;">
+            <a href="#" class="contact-us-link" style="color: var(--accent-primary); text-decoration: underline;">Contact us to advertise here</a>
+          </div>
         </div>
       </div>
 
@@ -2299,11 +2316,13 @@
         <div class="ad-placeholder">
           <h3>📢 Your Ad Here</h3>
           <p>300×250 Medium Rectangle</p>
-          <a href="/cdn-cgi/l/email-protection#523336211263606120373f3b3c3637207c313d3f" class="ad-contact">
+          <button class="ad-contact contact-us-btn" style="background: var(--accent-primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; margin: 10px auto;">
             <span>📧</span>
-            <span><span class="__cf_email__" data-cfemail="234247506312111051464e4a4d4746510d404c4e">[email&#160;protected]</span></span>
-          </a>
-          <div class="ad-dimensions">Don't worry. We do check our emails</div>
+            <span>Contact Us for Ads</span>
+          </button>
+          <div class="ad-dimensions" style="margin-top: 8px; font-size: 11px;">
+            <a href="#" class="contact-us-link" style="color: var(--accent-primary); text-decoration: underline;">Contact us to advertise here</a>
+          </div>
         </div>
       </div>
 
@@ -2312,11 +2331,13 @@
         <div class="ad-placeholder">
           <h3>📢 Your Ad Here</h3>
           <p>300×250 Medium Rectangle</p>
-          <a href="/cdn-cgi/l/email-protection#98f9fcebd8a9aaabeafdf5f1f6fcfdeab6fbf7f5" class="ad-contact">
+          <button class="ad-contact contact-us-btn" style="background: var(--accent-primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 8px; margin: 10px auto;">
             <span>📧</span>
-            <span><span class="__cf_email__" data-cfemail="3f5e5b4c7f0e0d0c4d5a5256515b5a4d115c5052">[email&#160;protected]</span></span>
-          </a>
-          <div class="ad-dimensions">Don't worry. We do check our emails</div>
+            <span>Contact Us for Ads</span>
+          </button>
+          <div class="ad-dimensions" style="margin-top: 8px; font-size: 11px;">
+            <a href="#" class="contact-us-link" style="color: var(--accent-primary); text-decoration: underline;">Contact us to advertise here</a>
+          </div>
         </div>
       </div>
     </aside>
@@ -2348,6 +2369,16 @@
         </div>
         <div class="form-group">
           <input type="password" class="auth-input" id="authPassword" placeholder="Password (min 6 characters)" required>
+        </div>
+        
+        <!-- Privacy Policy Checkbox -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; line-height: 1.5;">
+            <input type="checkbox" id="privacyCheckbox" required style="margin-top: 3px; cursor: pointer; width: 16px; height: 16px; flex-shrink: 0;">
+            <span>
+              I agree to the <a href="#" id="privacyPolicyLink" style="color: var(--accent-primary); text-decoration: underline;">Privacy Policy</a> and <a href="#" id="termsLink" style="color: var(--accent-primary); text-decoration: underline;">Terms of Service</a>
+            </span>
+          </label>
         </div>
         
         <button class="auth-submit-btn" id="emailSigninBtn">
@@ -2441,6 +2472,162 @@
         <h3 class="upgrade-prompt-title">💬 Want WhatsApp Too?</h3>
         <p class="upgrade-prompt-text">Get reminders on WhatsApp for just ₹35/month!</p>
         <button class="upgrade-prompt-btn" id="upgradeFromNotifBtn">🚀 Upgrade to Premium</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div class="auth-modal" id="privacyModal" style="display: none;">
+    <div class="auth-container" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+      <button class="close-modal-btn" id="closePrivacyModal" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
+      
+      <div class="auth-header">
+        <div class="auth-logo">🔒</div>
+        <h2 class="auth-title">Privacy Policy</h2>
+        <p class="auth-subtitle">Last updated: February 2, 2026</p>
+      </div>
+
+      <div style="text-align: left; padding: 20px; line-height: 1.8; color: var(--text-primary);">
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">1. Introduction</h3>
+        <p>Welcome to 123Reminder ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our service.</p>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">2. Information We Collect</h3>
+        <p><strong>Personal Information:</strong></p>
+        <ul>
+          <li>Name (for personalization)</li>
+          <li>Email address (for authentication and notifications)</li>
+          <li>Password (encrypted and securely stored)</li>
+          <li>Reminder content (text you enter in the calendar)</li>
+        </ul>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">3. How We Use Your Information</h3>
+        <p>We use your information to:</p>
+        <ul>
+          <li>Provide and maintain our reminder service</li>
+          <li>Send you email notifications (if enabled)</li>
+          <li>Personalize your experience</li>
+          <li>Improve our service</li>
+          <li>Communicate with you about updates or issues</li>
+        </ul>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">4. Data Storage and Security</h3>
+        <p><strong>Where Your Data is Stored:</strong> All data is stored securely on Supabase servers with encryption in transit (HTTPS) and at rest.</p>
+        <p><strong>Data Access:</strong> We (123Reminder administrators) have technical access to the database for maintenance and support purposes. However, we will never read your personal reminder content unless:</p>
+        <ul>
+          <li>You explicitly request technical support requiring data access</li>
+          <li>Required by law or legal process</li>
+          <li>To protect the rights, property, or safety of 123Reminder, our users, or the public</li>
+        </ul>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">5. Your Rights (India - DPDP Act 2023 Compliance)</h3>
+        <p>Under Indian data protection laws, you have the right to:</p>
+        <ul>
+          <li><strong>Access:</strong> Request a copy of your personal data</li>
+          <li><strong>Correction:</strong> Update or correct your information</li>
+          <li><strong>Deletion:</strong> Request deletion of your account and all associated data</li>
+          <li><strong>Portability:</strong> Export your reminder data</li>
+          <li><strong>Withdraw Consent:</strong> Opt-out of email notifications anytime</li>
+        </ul>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">6. Data Sharing</h3>
+        <p>We DO NOT sell, rent, or share your personal information with third parties except:</p>
+        <ul>
+          <li>Service providers (Supabase for hosting, Resend for email delivery) - under strict data protection agreements</li>
+          <li>When required by law</li>
+        </ul>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">7. Data Retention</h3>
+        <p>We retain your data as long as your account is active. If you delete your account, all personal data will be permanently deleted within 30 days.</p>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">8. Cookies and Tracking</h3>
+        <p>We use essential cookies for authentication and session management. We use Google AdSense for advertisements, which may use cookies for ad personalization.</p>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">9. Children's Privacy</h3>
+        <p>Our service is not intended for users under 18 years of age. We do not knowingly collect data from minors.</p>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">10. Changes to Privacy Policy</h3>
+        <p>We may update this policy periodically. Changes will be posted on this page with an updated "Last Updated" date.</p>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">11. Contact Us</h3>
+        <p>For privacy concerns, data requests, or questions, contact us at: <strong>privacy@123reminder.com</strong></p>
+
+        <h3 style="color: var(--accent-primary); margin-top: 20px;">12. Grievance Officer (India)</h3>
+        <p>As per Indian law, our Grievance Officer can be contacted at:</p>
+        <p><strong>Email:</strong> grievance@123reminder.com<br>
+        <strong>Response Time:</strong> Within 24 hours</p>
+
+        <div style="margin-top: 30px; padding: 15px; background: var(--accent-light); border-radius: 8px;">
+          <strong>Summary:</strong> We collect only essential information, store it securely, never sell your data, and give you full control over your information. Your reminders are private and confidential.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Us Modal -->
+  <div class="auth-modal" id="contactModal" style="display: none;">
+    <div class="auth-container" style="max-width: 500px;">
+      <button class="close-modal-btn" id="closeContactModal" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
+      
+      <div class="auth-header">
+        <div class="auth-logo">📧</div>
+        <h2 class="auth-title">Contact Us</h2>
+        <p class="auth-subtitle">We'd love to hear from you!</p>
+      </div>
+
+      <form class="auth-form" id="contactForm">
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Your Name</label>
+          <input type="text" class="auth-input" id="contactName" placeholder="Enter your name" required>
+        </div>
+        
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Email Address</label>
+          <input type="email" class="auth-input" id="contactEmail" placeholder="your@email.com" required>
+        </div>
+        
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Message Type</label>
+          <select class="auth-input" id="contactType" required>
+            <option value="">Select a topic...</option>
+            <option value="support">💬 Support / Help</option>
+            <option value="suggestion">💡 Suggestion / Feedback</option>
+            <option value="advertising">📢 Advertising Inquiry</option>
+            <option value="bug">🐛 Report a Bug</option>
+            <option value="other">📝 Other</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Your Message</label>
+          <textarea class="auth-input" id="contactMessage" placeholder="Tell us what's on your mind..." required style="min-height: 120px; resize: vertical; font-family: inherit;"></textarea>
+        </div>
+        
+        <button type="submit" class="auth-submit-btn">
+          <span>📨 Send Message</span>
+        </button>
+        
+        <div class="auth-note" style="margin-top: 12px; font-size: 12px;">
+          We typically respond within 24 hours
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Messages Panel -->
+  <div class="auth-modal" id="adminMessagesModal" style="display: none;">
+    <div class="auth-container" style="max-width: 900px; max-height: 85vh; overflow-y: auto;">
+      <button class="close-modal-btn" id="closeAdminMessagesModal" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
+      
+      <div class="auth-header">
+        <div class="auth-logo">👨‍💼</div>
+        <h2 class="auth-title">Admin Panel - User Messages</h2>
+        <p class="auth-subtitle">View all contact form submissions</p>
+      </div>
+
+      <div id="adminMessagesContent" style="padding: 20px;">
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+          Loading messages...
+        </div>
       </div>
     </div>
   </div>
@@ -3352,6 +3539,12 @@ You can change these settings anytime from your account menu.
 
     // Simulate Google Sign-In (replace with real Google OAuth later)
     async function handleGoogleSignIn() {
+      // Check privacy policy agreement
+      if (!privacyCheckbox.checked) {
+        alert('⚠️ Please agree to the Privacy Policy and Terms of Service to continue.');
+        return;
+      }
+      
       try {
         // Sign in with Google using Supabase
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
@@ -3375,6 +3568,12 @@ You can change these settings anytime from your account menu.
 
     // Handle Email/Password Sign-In
     async function handleEmailSignIn() {
+      // Check privacy policy agreement
+      if (!privacyCheckbox.checked) {
+        alert('⚠️ Please agree to the Privacy Policy and Terms of Service to continue.');
+        return;
+      }
+      
       const name = authName.value.trim();
       const email = authEmail.value.trim();
       const password = authPassword.value.trim();
@@ -3677,6 +3876,263 @@ You can change these settings anytime from your account menu.
       renderUpcomingList();
       applyTheme(currentTheme);
     }
+    
+    // ============================================
+    // NEW FEATURES - Privacy Policy, Contact Us, Admin Panel
+    // ============================================
+    
+    const ADMIN_EMAIL = 'jeediguntasriteja@gmail.com';
+    
+    // DOM refs for new modals
+    const privacyModal = document.getElementById('privacyModal');
+    const contactModal = document.getElementById('contactModal');
+    const adminMessagesModal = document.getElementById('adminMessagesModal');
+    const closePrivacyModal = document.getElementById('closePrivacyModal');
+    const closeContactModal = document.getElementById('closeContactModal');
+    const closeAdminMessagesModal = document.getElementById('closeAdminMessagesModal');
+    const privacyCheckbox = document.getElementById('privacyCheckbox');
+    const privacyPolicyLink = document.getElementById('privacyPolicyLink');
+    const termsLink = document.getElementById('termsLink');
+    const contactForm = document.getElementById('contactForm');
+    const adminPanelBtn = document.getElementById('adminPanelBtn');
+    const footerContactLink = document.getElementById('footerContactLink');
+    const footerPrivacyLink = document.getElementById('footerPrivacyLink');
+    const footerTermsLink = document.getElementById('footerTermsLink');
+    
+    // Open Privacy Policy Modal
+    function openPrivacyModal(e) {
+      if (e) e.preventDefault();
+      privacyModal.style.display = 'flex';
+    }
+    
+    // Close Privacy Policy Modal
+    function closePrivacyModalFunc() {
+      privacyModal.style.display = 'none';
+    }
+    
+    // Open Contact Modal
+    function openContactModal(e) {
+      if (e) e.preventDefault();
+      contactModal.style.display = 'flex';
+      
+      // Pre-fill email if user is signed in
+      const contactEmail = document.getElementById('contactEmail');
+      const contactName = document.getElementById('contactName');
+      if (currentUser) {
+        contactEmail.value = currentUser.email;
+        contactEmail.readOnly = true;
+        contactName.value = currentUser.name || '';
+      } else {
+        contactEmail.readOnly = false;
+      }
+    }
+    
+    // Close Contact Modal
+    function closeContactModalFunc() {
+      contactModal.style.display = 'none';
+      contactForm.reset();
+    }
+    
+    // Submit Contact Form
+    async function submitContactForm(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('contactName').value;
+      const email = document.getElementById('contactEmail').value;
+      const type = document.getElementById('contactType').value;
+      const message = document.getElementById('contactMessage').value;
+      
+      try {
+        // Save to Supabase
+        const { data, error } = await supabaseClient
+          .from('contact_messages')
+          .insert([
+            {
+              name: name,
+              email: email,
+              message_type: type,
+              message: message,
+              user_id: currentUser ? currentUser.id : null,
+              created_at: new Date().toISOString()
+            }
+          ]);
+        
+        if (error) throw error;
+        
+        alert('✅ Message sent successfully! We\'ll get back to you within 24 hours.');
+        closeContactModalFunc();
+      } catch (error) {
+        console.error('Error sending message:', error);
+        alert('❌ Failed to send message. Please try again or email us directly at support@123reminder.com');
+      }
+    }
+    
+    // Open Admin Panel
+    async function openAdminPanel() {
+      if (currentUser && currentUser.email === ADMIN_EMAIL) {
+        adminMessagesModal.style.display = 'flex';
+        await loadAdminMessages();
+      } else {
+        alert('⛔ Admin access only');
+      }
+    }
+    
+    // Load Admin Messages
+    async function loadAdminMessages() {
+      const content = document.getElementById('adminMessagesContent');
+      content.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 24px; margin-bottom: 10px;">⏳</div>Loading messages...</div>';
+      
+      try {
+        const { data, error } = await supabaseClient
+          .from('contact_messages')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+          content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">📭 No messages yet</div>';
+          return;
+        }
+        
+        // Display messages
+        let html = '<div style="display: grid; gap: 15px;">';
+        data.forEach(msg => {
+          const date = new Date(msg.created_at).toLocaleString('en-IN', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          });
+          
+          const typeEmoji = {
+            'support': '💬',
+            'suggestion': '💡',
+            'advertising': '📢',
+            'bug': '🐛',
+            'other': '📝'
+          }[msg.message_type] || '📝';
+          
+          html += `
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                <div>
+                  <div style="font-weight: 600; font-size: 16px; color: var(--text-primary); margin-bottom: 4px;">
+                    ${typeEmoji} ${msg.name}
+                  </div>
+                  <div style="font-size: 13px; color: var(--text-secondary);">
+                    📧 ${msg.email}
+                  </div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); text-align: right;">
+                  ${date}
+                </div>
+              </div>
+              <div style="background: var(--bg-primary); padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap;">
+                ${msg.message}
+              </div>
+              ${msg.user_id ? `<div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">🔐 Signed in user</div>` : ''}
+            </div>
+          `;
+        });
+        html += '</div>';
+        
+        content.innerHTML = html;
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--danger);">❌ Error loading messages</div>';
+      }
+    }
+    
+    // Close Admin Modal
+    function closeAdminModalFunc() {
+      adminMessagesModal.style.display = 'none';
+    }
+    
+    // Show/Hide Admin Button based on user
+    function updateAdminButton() {
+      if (currentUser && currentUser.email === ADMIN_EMAIL) {
+        adminPanelBtn.style.display = 'inline-flex';
+      } else {
+        adminPanelBtn.style.display = 'none';
+      }
+    }
+    
+    // Event Listeners for new features
+    if (privacyPolicyLink) privacyPolicyLink.addEventListener('click', openPrivacyModal);
+    if (termsLink) termsLink.addEventListener('click', openPrivacyModal);
+    if (footerPrivacyLink) footerPrivacyLink.addEventListener('click', openPrivacyModal);
+    if (footerTermsLink) footerTermsLink.addEventListener('click', openPrivacyModal);
+    if (closePrivacyModal) closePrivacyModal.addEventListener('click', closePrivacyModalFunc);
+    
+    if (footerContactLink) footerContactLink.addEventListener('click', openContactModal);
+    if (closeContactModal) closeContactModal.addEventListener('click', closeContactModalFunc);
+    if (contactForm) contactForm.addEventListener('submit', submitContactForm);
+    
+    // Add event listeners for all Contact Us buttons
+    document.querySelectorAll('.contact-us-btn, .contact-us-link').forEach(btn => {
+      btn.addEventListener('click', openContactModal);
+    });
+    
+    if (adminPanelBtn) adminPanelBtn.addEventListener('click', openAdminPanel);
+    if (closeAdminMessagesModal) closeAdminMessagesModal.addEventListener('click', closeAdminModalFunc);
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === privacyModal) closePrivacyModalFunc();
+      if (e.target === contactModal) closeContactModalFunc();
+      if (e.target === adminMessagesModal) closeAdminModalFunc();
+    });
+    
+    // ============================================
+    // FEATURE: Preserve reminders when signing in
+    // ============================================
+    
+    // Modify the handleEmailSignIn function to preserve local reminders
+    const originalUpdateUIForSignedInUser = updateUIForSignedInUser;
+    updateUIForSignedInUser = async function() {
+      // Call original function
+      await originalUpdateUIForSignedInUser();
+      
+      // Show admin button if admin
+      updateAdminButton();
+      
+      // After signing in, check if there are local reminders to migrate
+      const localReminders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (Object.keys(localReminders).length > 0) {
+        const shouldMigrate = confirm('📋 You have reminders saved locally. Would you like to save them to the cloud?');
+        
+        if (shouldMigrate) {
+          try {
+            // Migrate local reminders to cloud
+            for (const [dateKey, reminderList] of Object.entries(localReminders)) {
+              for (const reminder of reminderList) {
+                await supabaseClient
+                  .from('reminders')
+                  .insert([{
+                    user_id: currentUser.id,
+                    reminder_date: dateKey,
+                    reminder_text: reminder.text,
+                    category: reminder.category || 'other',
+                    recurring: reminder.recurring || 'none',
+                    created_at: new Date().toISOString()
+                  }]);
+              }
+            }
+            
+            alert('✅ All your local reminders have been saved to the cloud!');
+            
+            // Clear local storage after migration
+            localStorage.removeItem(STORAGE_KEY);
+            
+            // Reload reminders from database
+            await loadRemindersFromDB();
+            renderCalendar();
+          } catch (error) {
+            console.error('Error migrating reminders:', error);
+            alert('❌ Some reminders could not be migrated. Please try again.');
+          }
+        }
+      }
+    };
     
     // Start the app
     initializeApp();
