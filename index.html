@@ -2549,11 +2549,11 @@
         <p>We may update this policy periodically. Changes will be posted on this page with an updated "Last Updated" date.</p>
 
         <h3 style="color: var(--accent-primary); margin-top: 20px;">11. Contact Us</h3>
-        <p>For privacy concerns, data requests, or questions, contact us at: <strong>privacy@123reminder.com</strong></p>
+        <p>For privacy concerns, data requests, or questions: <a href="#" class="privacy-contact-link" style="color: var(--accent-primary); font-weight: 600; text-decoration: underline;">Click here to contact us</a></p>
 
         <h3 style="color: var(--accent-primary); margin-top: 20px;">12. Grievance Officer (India)</h3>
         <p>As per Indian law, our Grievance Officer can be contacted at:</p>
-        <p><strong>Email:</strong> grievance@123reminder.com<br>
+        <p><a href="#" class="grievance-contact-link" style="color: var(--accent-primary); font-weight: 600; text-decoration: underline;">Contact Grievance Officer</a><br>
         <strong>Response Time:</strong> Within 24 hours</p>
 
         <div style="margin-top: 30px; padding: 15px; background: var(--accent-light); border-radius: 8px;">
@@ -2672,7 +2672,7 @@
     </div>
   </div>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     // ============================================
     // SUPABASE CONFIGURATION
     // ============================================
@@ -3546,8 +3546,15 @@ You can change these settings anytime from your account menu.
       }
       
       try {
+        // IMPORTANT: Save current reminders BEFORE redirect to prevent data loss
+        const currentReminders = localStorage.getItem(STORAGE_KEY);
+        if (currentReminders && currentReminders !== '{}') {
+          localStorage.setItem('123Reminder_pending_migration', currentReminders);
+          console.log('💾 Saved reminders for post-OAuth migration');
+        }
+        
         // Sign in with Google using Supabase
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        const { data, error} = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo: 'https://123reminder.com'
@@ -3980,9 +3987,25 @@ You can change these settings anytime from your account menu.
     // Load Admin Messages
     async function loadAdminMessages() {
       const content = document.getElementById('adminMessagesContent');
-      content.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 24px; margin-bottom: 10px;">⏳</div>Loading messages...</div>';
+      content.innerHTML = '<div style="text-align: center; padding: 40px;"><div style="font-size: 24px; margin-bottom: 10px;">⏳</div>Loading admin data...</div>';
       
       try {
+        // Fetch user statistics
+        const { count: totalUsers, error: countError } = await supabaseClient
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+        
+        if (countError) throw countError;
+        
+        // Fetch new users (last 24 hours)
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const { count: newUsersToday, error: newError } = await supabaseClient
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', yesterday.toISOString());
+        
+        // Fetch contact messages
         const { data, error } = await supabaseClient
           .from('contact_messages')
           .select('*')
@@ -3990,55 +4013,77 @@ You can change these settings anytime from your account menu.
         
         if (error) throw error;
         
-        if (!data || data.length === 0) {
-          content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">📭 No messages yet</div>';
-          return;
-        }
-        
-        // Display messages
-        let html = '<div style="display: grid; gap: 15px;">';
-        data.forEach(msg => {
-          const date = new Date(msg.created_at).toLocaleString('en-IN', {
-            dateStyle: 'medium',
-            timeStyle: 'short'
-          });
-          
-          const typeEmoji = {
-            'support': '💬',
-            'suggestion': '💡',
-            'advertising': '📢',
-            'bug': '🐛',
-            'other': '📝'
-          }[msg.message_type] || '📝';
-          
-          html += `
-            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
-              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                <div>
-                  <div style="font-weight: 600; font-size: 16px; color: var(--text-primary); margin-bottom: 4px;">
-                    ${typeEmoji} ${msg.name}
-                  </div>
-                  <div style="font-size: 13px; color: var(--text-secondary);">
-                    📧 ${msg.email}
-                  </div>
-                </div>
-                <div style="font-size: 12px; color: var(--text-secondary); text-align: right;">
-                  ${date}
-                </div>
+        // Build dashboard HTML with stats
+        let html = `
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; margin-bottom: 25px; color: white;">
+            <h2 style="margin: 0 0 20px 0; font-size: 24px;">📊 Admin Dashboard</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+              <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 10px; backdrop-filter: blur(10px);">
+                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;">${totalUsers || 0}</div>
+                <div style="font-size: 14px; opacity: 0.9;">👥 Total Users</div>
               </div>
-              <div style="background: var(--bg-primary); padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap;">
-                ${msg.message}
+              <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 10px; backdrop-filter: blur(10px);">
+                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;">${newUsersToday || 0}</div>
+                <div style="font-size: 14px; opacity: 0.9;">🆕 New Today</div>
               </div>
-              ${msg.user_id ? `<div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">🔐 Signed in user</div>` : ''}
+              <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 10px; backdrop-filter: blur(10px);">
+                <div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;">${data?.length || 0}</div>
+                <div style="font-size: 14px; opacity: 0.9;">📧 Messages</div>
+              </div>
             </div>
-          `;
-        });
-        html += '</div>';
+          </div>
+          
+          <h3 style="margin: 20px 0 15px 0; color: var(--text-primary);">💬 Contact Messages</h3>
+        `;
+        
+        if (!data || data.length === 0) {
+          html += '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">📭 No messages yet</div>';
+        } else {
+          // Display messages
+          html += '<div style="display: grid; gap: 15px;">';
+          data.forEach(msg => {
+            const date = new Date(msg.created_at).toLocaleString('en-IN', {
+              dateStyle: 'medium',
+              timeStyle: 'short'
+            });
+            
+            const typeEmoji = {
+              'support': '💬',
+              'suggestion': '💡',
+              'advertising': '📢',
+              'bug': '🐛',
+              'other': '📝'
+            }[msg.message_type] || '📝';
+            
+            html += `
+              <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                  <div>
+                    <div style="font-weight: 600; font-size: 16px; color: var(--text-primary); margin-bottom: 4px;">
+                      ${typeEmoji} ${msg.name}
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary);">
+                      📧 ${msg.email}
+                    </div>
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-secondary); text-align: right;">
+                    ${date}
+                  </div>
+                </div>
+                <div style="background: var(--bg-primary); padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap;">
+                  ${msg.message}
+                </div>
+                ${msg.user_id ? `<div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">🔐 Signed in user</div>` : ''}
+              </div>
+            `;
+          });
+          html += '</div>';
+        }
         
         content.innerHTML = html;
       } catch (error) {
-        console.error('Error loading messages:', error);
-        content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--danger);">❌ Error loading messages</div>';
+        console.error('Error loading admin data:', error);
+        content.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--danger);">❌ Error loading admin data</div>';
       }
     }
     
@@ -4072,6 +4117,15 @@ You can change these settings anytime from your account menu.
       btn.addEventListener('click', openContactModal);
     });
     
+    // Add event listeners for privacy policy and grievance contact links
+    document.querySelectorAll('.privacy-contact-link, .grievance-contact-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        closePrivacyModalFunc(); // Close privacy modal first
+        setTimeout(() => openContactModal(e), 300); // Open contact modal after short delay
+      });
+    });
+    
     if (adminPanelBtn) adminPanelBtn.addEventListener('click', openAdminPanel);
     if (closeAdminMessagesModal) closeAdminMessagesModal.addEventListener('click', closeAdminModalFunc);
     
@@ -4096,7 +4150,17 @@ You can change these settings anytime from your account menu.
       updateAdminButton();
       
       // After signing in, check if there are local reminders to migrate
-      const localReminders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      // Check BOTH current storage AND pending migration (from Google OAuth redirect)
+      let localReminders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      const pendingReminders = localStorage.getItem('123Reminder_pending_migration');
+      
+      // If there are pending reminders from OAuth redirect, use those instead
+      if (pendingReminders) {
+        console.log('✅ Found pending reminders from OAuth redirect');
+        localReminders = JSON.parse(pendingReminders);
+        localStorage.removeItem('123Reminder_pending_migration'); // Clean up
+      }
+      
       if (Object.keys(localReminders).length > 0) {
         const shouldMigrate = confirm('📋 You have reminders saved locally. Would you like to save them to the cloud?');
         
