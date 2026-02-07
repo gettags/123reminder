@@ -2099,7 +2099,179 @@
         text-align: center;
       }
     }
-  </style>
+  
+    /* ============================================
+       GANG/TEAM CALENDAR FEATURES
+       ============================================ */
+    
+    .calendar-tabs-container {
+      display: none;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+    
+    .calendar-tab {
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    .calendar-tab:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+    
+    .calendar-tab.active {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+    }
+    
+    .gang-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    
+    .privacy-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    
+    .privacy-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+      background-color: var(--accent-primary);
+    }
+    
+    input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+    
+    .share-link-box {
+      background: var(--bg-primary);
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .share-link-input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: monospace;
+    }
+    
+    .copy-btn {
+      padding: 8px 16px;
+      background: var(--accent-primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    
+    .copy-btn:hover {
+      background: var(--accent-hover);
+    }
+    
+    .readonly-banner {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 16px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .contribute-btn {
+      padding: 8px 16px;
+      background: var(--success);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      margin-left: 12px;
+    }
+</style>
 </head>
 <body>
   <div class="app-container">
@@ -2217,7 +2389,79 @@
         </div>
 
         <!-- Category Filters -->
-        <div class="category-filters">
+        
+  <!-- Calendar Tabs (for switching between personal and gang calendars) -->
+  <div class="calendar-tabs-container" id="calendarTabs">
+    <!-- Dynamically populated -->
+  </div>
+  
+  <!-- Privacy/Public Toggle Section -->
+  <div class="privacy-section" id="privacySection">
+    <div class="privacy-toggle-row">
+      <div>
+        <strong style="color: var(--text-primary);">📢 Make this calendar public</strong>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 0 0;">
+          Anyone with the link can view (read-only)
+        </p>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="privacyToggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="share-link-box" id="shareLinkBox">
+      <input type="text" class="share-link-input" id="shareLinkInput" readonly />
+      <button class="copy-btn" onclick="copyShareLink()">📋 Copy</button>
+    </div>
+  </div>
+  
+  <!-- Read-only viewing banner -->
+  <div class="readonly-banner" id="readonlyBanner">
+    <!-- Dynamically populated -->
+  </div>
+
+  <!-- Gang Creation Modal -->
+  <div class="auth-modal" id="gangModal" style="display: none;">
+    <div class="auth-container" style="max-width: 600px;">
+      <button class="close-modal-btn" onclick="closeGangModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
+      
+      <div class="auth-header">
+        <div class="auth-logo">👥</div>
+        <h2 class="auth-title">Create a Gang</h2>
+        <p class="auth-subtitle">Set up a collaborative team calendar</p>
+      </div>
+
+      <form id="gangForm" style="padding: 20px;">
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Gang Name *</label>
+          <input type="text" class="auth-input" id="gangName" placeholder="My Awesome Team" required maxlength="30" />
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Max 30 characters</div>
+        </div>
+        
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Add Members (Email IDs)</label>
+          <textarea class="auth-input" id="gangMembers" placeholder="member1@email.com
+member2@email.com
+member3@email.com" style="min-height: 100px; resize: vertical; font-family: inherit;"></textarea>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+            One email per line. <span id="memberLimit">Up to 100 for free accounts</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary);">Purpose / Description</label>
+          <textarea class="auth-input" id="gangDescription" placeholder="Tell your team what this calendar is for..." style="min-height: 80px; resize: vertical; font-family: inherit;" maxlength="1500"></textarea>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Max 300 words</div>
+        </div>
+        
+        <button type="submit" class="auth-submit-btn">
+          <span>🚀 Create Gang</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+      <div class="category-filters">
           <div class="category-pill cat-work" data-category="work">💼 Work</div>
           <div class="category-pill cat-personal" data-category="personal">👤 Personal</div>
           <div class="category-pill cat-health" data-category="health">❤️ Health</div>
@@ -2714,6 +2958,17 @@
     let currentTheme = localStorage.getItem('theme') || 'light';
     let searchTerm = '';
     let currentUser = null; // Will hold user data when signed in
+    
+    // ============================================
+    // GANG FEATURES - STATE & CONFIGURATION
+    // ============================================
+    let currentCalendarType = 'personal'; // 'personal' or 'gang'
+    let currentGangId = null;
+    let activeGangs = [];
+    let gangReminders = {};
+    let isReadOnlyView = false;
+    let viewingPublicCalendar = null;
+
     let selectedNotificationTime = '08:00'; // Default notification time
     let emailNotificationsEnabled = false;
 
@@ -2833,6 +3088,44 @@
 
     async function saveReminders() {
       updateStats();
+      
+      // Handle gang calendar saves
+      if (currentCalendarType === 'gang' && currentGangId && !isReadOnlyView) {
+        try {
+          await supabaseClient
+            .from('gang_reminders')
+            .delete()
+            .eq('gang_id', currentGangId);
+          
+          const toInsert = [];
+          Object.entries(reminders).forEach(([date, reminderList]) => {
+            reminderList.forEach(reminder => {
+              toInsert.push({
+                gang_id: currentGangId,
+                created_by: currentUser.id,
+                date,
+                text: reminder.text,
+                category: reminder.category,
+                recurring: reminder.recurring || 'none'
+              });
+            });
+          });
+          
+          if (toInsert.length > 0) {
+            await supabaseClient
+              .from('gang_reminders')
+              .insert(toInsert);
+          }
+          
+          console.log('Gang reminders saved');
+          return;
+        } catch (err) {
+          console.error('Error saving gang reminders:', err);
+          alert('⚠️ Failed to save gang reminders');
+          return;
+        }
+      }
+
       
       if (!currentUser) {
         console.log('No user logged in, skipping cloud save');
@@ -3687,6 +3980,16 @@ You can change these settings anytime from your account menu.
         
         // Render calendar with loaded data
         renderCalendar();
+      
+      // Hide gang features
+      activeGangs = [];
+      currentCalendarType = 'personal';
+      currentGangId = null;
+      isReadOnlyView = false;
+      renderCalendarTabs();
+      const privacySection = document.getElementById('privacySection');
+      if (privacySection) privacySection.style.display = 'none';
+
         
       } catch (error) {
         console.error('Auth error:', error);
@@ -3875,10 +4178,565 @@ You can change these settings anytime from your account menu.
     }
     
     // Initialize the app
+    
+    
+    // ============================================
+    // GANG FUNCTIONS
+    // ============================================
+    
+    // Initialize URL routing for public calendars
+    function initGangRouting() {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/u/')) {
+        const username = hash.substring(4);
+        loadPublicUserCalendar(username);
+      } else if (hash.startsWith('#/g/')) {
+        const gangSlug = hash.substring(4);
+        loadPublicGangCalendar(gangSlug);
+      }
+      
+      window.addEventListener('hashchange', () => {
+        const newHash = window.location.hash;
+        if (newHash.startsWith('#/u/')) {
+          loadPublicUserCalendar(newHash.substring(4));
+        } else if (newHash.startsWith('#/g/')) {
+          loadPublicGangCalendar(newHash.substring(4));
+        } else if (newHash === '') {
+          // Reset to personal calendar
+          if (currentCalendarType !== 'personal') {
+            switchToPersonal();
+          }
+        }
+      });
+    }
+    
+    // Load public user calendar
+    async function loadPublicUserCalendar(username) {
+      try {
+        const { data: profile, error } = await supabaseClient
+          .from('profiles')
+          .select('id, full_name, email, calendar_is_public, username')
+          .eq('username', username)
+          .single();
+        
+        if (error || !profile) {
+          alert('User not found');
+          window.location.hash = '';
+          return;
+        }
+        
+        if (!profile.calendar_is_public) {
+          alert('🔒 This calendar is private');
+          window.location.hash = '';
+          return;
+        }
+        
+        // Load their reminders
+        const { data: userReminders } = await supabaseClient
+          .from('reminders')
+          .select('*')
+          .eq('user_id', profile.id);
+        
+        reminders = {};
+        if (userReminders) {
+          userReminders.forEach(rem => {
+            if (!reminders[rem.date]) reminders[rem.date] = [];
+            reminders[rem.date].push({
+              text: rem.text,
+              category: rem.category,
+              recurring: rem.recurring || 'none',
+              id: rem.id
+            });
+          });
+        }
+        
+        isReadOnlyView = true;
+        viewingPublicCalendar = profile;
+        showReadonlyBanner(profile.full_name || username, 'user');
+        renderCalendar();
+      } catch (err) {
+        console.error('Error loading public calendar:', err);
+        alert('Could not load calendar');
+        window.location.hash = '';
+      }
+    }
+    
+    // Load public gang calendar
+    async function loadPublicGangCalendar(gangSlug) {
+      try {
+        const { data: gang, error } = await supabaseClient
+          .from('gangs')
+          .select('*')
+          .eq('url_slug', gangSlug)
+          .single();
+        
+        if (error || !gang) {
+          alert('Gang not found');
+          window.location.hash = '';
+          return;
+        }
+        
+        if (!gang.is_public) {
+          alert('🔒 This gang calendar is private');
+          window.location.hash = '';
+          return;
+        }
+        
+        // Load gang reminders
+        const { data: gReminders } = await supabaseClient
+          .from('gang_reminders')
+          .select('*')
+          .eq('gang_id', gang.id);
+        
+        reminders = {};
+        if (gReminders) {
+          gReminders.forEach(rem => {
+            if (!reminders[rem.date]) reminders[rem.date] = [];
+            reminders[rem.date].push({
+              text: rem.text,
+              category: rem.category,
+              recurring: rem.recurring || 'none',
+              id: rem.id
+            });
+          });
+        }
+        
+        isReadOnlyView = true;
+        currentGangId = gang.id;
+        currentCalendarType = 'gang';
+        viewingPublicCalendar = gang;
+        showReadonlyBanner(gang.name, 'gang');
+        renderCalendar();
+      } catch (err) {
+        console.error('Error loading gang calendar:', err);
+        alert('Could not load gang calendar');
+        window.location.hash = '';
+      }
+    }
+    
+    // Show readonly banner
+    function showReadonlyBanner(name, type) {
+      const banner = document.getElementById('readonlyBanner');
+      if (!banner) return;
+      
+      banner.style.display = 'flex';
+      if (type === 'user') {
+        banner.innerHTML = `
+          <span>👁️</span>
+          <span>Viewing ${name}'s public calendar (Read-only)</span>
+        `;
+      } else {
+        banner.innerHTML = `
+          <span>👁️</span>
+          <span>Viewing "${name}" gang calendar (Read-only)</span>
+          ${currentUser ? '<button class="contribute-btn" onclick="requestToJoinGang()">🙋 Request to Join</button>' : ''}
+        `;
+      }
+    }
+    
+    // Hide readonly banner
+    function hideReadonlyBanner() {
+      const banner = document.getElementById('readonlyBanner');
+      if (banner) banner.style.display = 'none';
+    }
+    
+    // Load user's gangs
+    async function loadUserGangs() {
+      if (!currentUser) {
+        activeGangs = [];
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabaseClient
+          .from('gang_members')
+          .select(`
+            role,
+            gangs (
+              id,
+              name,
+              is_public,
+              url_slug
+            )
+          `)
+          .eq('user_id', currentUser.id);
+        
+        if (error) throw error;
+        
+        activeGangs = (data || []).map(item => ({
+          id: item.gangs.id,
+          name: item.gangs.name,
+          is_public: item.gangs.is_public,
+          url_slug: item.gangs.url_slug,
+          userRole: item.role
+        }));
+        
+        renderCalendarTabs();
+      } catch (err) {
+        console.error('Error loading gangs:', err);
+        activeGangs = [];
+      }
+    }
+    
+    // Render calendar tabs
+    function renderCalendarTabs() {
+      const container = document.getElementById('calendarTabs');
+      if (!container) return;
+      
+      if (!currentUser || activeGangs.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      
+      container.style.display = 'flex';
+      container.innerHTML = '';
+      
+      // Personal tab
+      const personalTab = document.createElement('div');
+      personalTab.className = 'calendar-tab' + (currentCalendarType === 'personal' && !isReadOnlyView ? ' active' : '');
+      personalTab.innerHTML = '👤 My Calendar';
+      personalTab.onclick = switchToPersonal;
+      container.appendChild(personalTab);
+      
+      // Gang tabs
+      activeGangs.forEach(gang => {
+        const tab = document.createElement('div');
+        tab.className = 'calendar-tab' + (currentGangId === gang.id && !isReadOnlyView ? ' active' : '');
+        tab.innerHTML = `
+          👥 ${gang.name}
+          ${gang.userRole === 'leader' ? ' <span class="gang-badge">Leader</span>' : ''}
+        `;
+        tab.onclick = () => switchToGang(gang.id);
+        container.appendChild(tab);
+      });
+      
+      // Create gang button
+      const createBtn = document.createElement('div');
+      createBtn.className = 'calendar-tab';
+      createBtn.style.cssText = 'background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none;';
+      createBtn.innerHTML = '➕ Create Gang';
+      createBtn.onclick = openGangModal;
+      container.appendChild(createBtn);
+    }
+    
+    // Switch to personal calendar
+    function switchToPersonal() {
+      if (isReadOnlyView) {
+        window.location.hash = '';
+        isReadOnlyView = false;
+        viewingPublicCalendar = null;
+        hideReadonlyBanner();
+      }
+      currentCalendarType = 'personal';
+      currentGangId = null;
+      loadRemindersFromDB();
+      renderCalendarTabs();
+      updatePrivacySection();
+    }
+    
+    // Switch to gang calendar
+    async function switchToGang(gangId) {
+      if (isReadOnlyView) {
+        window.location.hash = '';
+        isReadOnlyView = false;
+        viewingPublicCalendar = null;
+        hideReadonlyBanner();
+      }
+      currentCalendarType = 'gang';
+      currentGangId = gangId;
+      await loadGangReminders(gangId);
+      renderCalendarTabs();
+      updatePrivacySection();
+    }
+    
+    // Load gang reminders
+    async function loadGangReminders(gangId) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('gang_reminders')
+          .select('*')
+          .eq('gang_id', gangId);
+        
+        if (error) throw error;
+        
+        gangReminders = {};
+        if (data) {
+          data.forEach(rem => {
+            if (!gangReminders[rem.date]) gangReminders[rem.date] = [];
+            gangReminders[rem.date].push({
+              text: rem.text,
+              category: rem.category,
+              recurring: rem.recurring || 'none',
+              id: rem.id
+            });
+          });
+        }
+        
+        reminders = gangReminders;
+        renderCalendar();
+      } catch (err) {
+        console.error('Error loading gang reminders:', err);
+        gangReminders = {};
+        reminders = {};
+        renderCalendar();
+      }
+    }
+    
+    // Update privacy section visibility and state
+    function updatePrivacySection() {
+      const section = document.getElementById('privacySection');
+      const toggle = document.getElementById('privacyToggle');
+      const shareBox = document.getElementById('shareLinkBox');
+      const shareInput = document.getElementById('shareLinkInput');
+      
+      if (!section || !currentUser || isReadOnlyView) {
+        if (section) section.style.display = 'none';
+        return;
+      }
+      
+      section.style.display = 'block';
+      
+      // Check current privacy state
+      if (currentCalendarType === 'personal') {
+        supabaseClient
+          .from('profiles')
+          .select('calendar_is_public, username')
+          .eq('id', currentUser.id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              toggle.checked = data.calendar_is_public || false;
+              if (data.calendar_is_public && data.username) {
+                const url = `${window.location.origin}${window.location.pathname}#/u/${data.username}`;
+                shareInput.value = url;
+                shareBox.style.display = 'flex';
+              } else {
+                shareBox.style.display = 'none';
+              }
+            }
+          });
+      } else if (currentGangId) {
+        supabaseClient
+          .from('gangs')
+          .select('is_public, url_slug')
+          .eq('id', currentGangId)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              toggle.checked = data.is_public || false;
+              if (data.is_public && data.url_slug) {
+                const url = `${window.location.origin}${window.location.pathname}#/g/${data.url_slug}`;
+                shareInput.value = url;
+                shareBox.style.display = 'flex';
+              } else {
+                shareBox.style.display = 'none';
+              }
+            }
+          });
+      }
+    }
+    
+    // Toggle privacy
+    async function togglePrivacy(isPublic) {
+      if (!currentUser) return;
+      
+      try {
+        if (currentCalendarType === 'personal') {
+          // Get or create username
+          const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('username')
+            .eq('id', currentUser.id)
+            .single();
+          
+          let username = profile?.username;
+          if (!username) {
+            username = await generateUsername(currentUser.email);
+            await supabaseClient
+              .from('profiles')
+              .update({ username, calendar_url_slug: username })
+              .eq('id', currentUser.id);
+          }
+          
+          await supabaseClient
+            .from('profiles')
+            .update({ calendar_is_public: isPublic })
+            .eq('id', currentUser.id);
+          
+          alert(isPublic ? '✅ Calendar is now public!' : '🔒 Calendar is now private');
+        } else if (currentGangId) {
+          await supabaseClient
+            .from('gangs')
+            .update({ is_public: isPublic })
+            .eq('id', currentGangId);
+          
+          alert(isPublic ? '✅ Gang calendar is now public!' : '🔒 Gang calendar is now private');
+        }
+        
+        updatePrivacySection();
+      } catch (err) {
+        console.error('Error toggling privacy:', err);
+        alert('❌ Failed to update privacy settings');
+      }
+    }
+    
+    // Generate username from email
+    async function generateUsername(email) {
+      let base = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      let username = base;
+      let counter = 0;
+      
+      while (true) {
+        const { data } = await supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('username', username);
+        
+        if (!data || data.length === 0) break;
+        counter++;
+        username = base + counter;
+      }
+      
+      return username;
+    }
+    
+    // Copy share link
+    function copyShareLink() {
+      const input = document.getElementById('shareLinkInput');
+      if (input) {
+        input.select();
+        document.execCommand('copy');
+        alert('✅ Link copied!');
+      }
+    }
+    
+    // Open gang modal
+    function openGangModal() {
+      const modal = document.getElementById('gangModal');
+      if (modal) modal.style.display = 'flex';
+    }
+    
+    // Close gang modal
+    function closeGangModal() {
+      const modal = document.getElementById('gangModal');
+      if (modal) modal.style.display = 'none';
+    }
+    
+    // Create gang
+    async function createGang(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('gangName').value.trim();
+      const description = document.getElementById('gangDescription').value.trim();
+      const memberEmails = document.getElementById('gangMembers').value
+        .split('\n')
+        .map(e => e.trim())
+        .filter(e => e.length > 0);
+      
+      if (!name) {
+        alert('Gang name is required');
+        return;
+      }
+      
+      try {
+        // Generate slug
+        let slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 30);
+        let finalSlug = slug;
+        let counter = 0;
+        
+        while (true) {
+          const { data } = await supabaseClient
+            .from('gangs')
+            .select('id')
+            .eq('url_slug', finalSlug);
+          if (!data || data.length === 0) break;
+          counter++;
+          finalSlug = slug.substring(0, 25) + '-' + counter;
+        }
+        
+        // Create gang
+        const { data: gang, error } = await supabaseClient
+          .from('gangs')
+          .insert([{
+            name,
+            description,
+            creator_id: currentUser.id,
+            url_slug: finalSlug,
+            is_public: false
+          }])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        alert(`✅ Gang "${name}" created!`);
+        closeGangModal();
+        document.getElementById('gangForm').reset();
+        
+        await loadUserGangs();
+        switchToGang(gang.id);
+      } catch (err) {
+        console.error('Error creating gang:', err);
+        alert('❌ Failed to create gang');
+      }
+    }
+    
+    // Request to join gang
+    async function requestToJoinGang() {
+      if (!currentUser || !currentGangId) {
+        alert('Please sign in to request joining');
+        return;
+      }
+      
+      try {
+        await supabaseClient
+          .from('gang_join_requests')
+          .insert([{
+            gang_id: currentGangId,
+            requester_id: currentUser.id,
+            requester_email: currentUser.email,
+            requester_name: currentUser.user_metadata?.full_name || currentUser.email,
+            status: 'pending'
+          }]);
+        
+        alert('✅ Request sent to gang leader!');
+      } catch (err) {
+        if (err.code === '23505') {
+          alert('You already requested to join this gang');
+        } else {
+          console.error('Error requesting join:', err);
+          alert('❌ Failed to send request');
+        }
+      }
+    }
+
     async function initializeApp() {
       await checkForSignedInUser();
       if (!currentUser) {
         renderCalendar();
+      
+      // Initialize gang features
+      const gangForm = document.getElementById('gangForm');
+      if (gangForm) {
+        gangForm.addEventListener('submit', createGang);
+      }
+      
+      const privacyToggle = document.getElementById('privacyToggle');
+      if (privacyToggle) {
+        privacyToggle.addEventListener('change', (e) => {
+          togglePrivacy(e.target.checked);
+        });
+      }
+      
+      // Initialize routing
+      initGangRouting();
+      
+      // Load gangs if user is signed in
+      if (currentUser) {
+        await loadUserGangs();
+        updatePrivacySection();
+      }
+
       }
       renderUpcomingList();
       applyTheme(currentTheme);
