@@ -4961,8 +4961,8 @@ You can change these settings anytime from your account menu.
             .select('*', { count: 'exact', head: true }).eq('calendar_url_slug', slug);
           if ((count || 0) > 0) slug = slug + '-' + Date.now().toString(36).slice(-4);
 
-          // Use RPC to bypass RLS — ensures profile row is created
-          await supabaseClient.rpc('update_calendar_slug', { new_slug: slug });
+          await supabaseClient.from('profiles')
+            .upsert({ id: currentUser.id, calendar_url_slug: slug, updated_at: new Date().toISOString() });
         }
 
         currentUser.calendarSlug = slug;
@@ -4971,6 +4971,7 @@ You can change these settings anytime from your account menu.
         personalUrlBanner.classList.add('active');
 
         // Update the browser address bar to show the user's personal URL
+        // (only if we're currently at the root — don't override gang or public routes)
         const currentPath = window.location.pathname.replace(/^\//, '').trim();
         if (!currentPath || currentPath === 'index.html') {
           window.history.replaceState({ slug }, '', '/' + slug);
@@ -4995,76 +4996,60 @@ You can change these settings anytime from your account menu.
       const path = window.location.pathname.replace(/^\//, '').trim();
       if (!path || path === 'index.html') return false;
 
+      // Helper to show the private/unavailable page
+      function showPrivatePage(ownerName) {
+        document.body.innerHTML = `
+          <div style="min-height:100vh;background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;padding:24px;">
+            <div style="background:white;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.1);padding:48px 40px;max-width:460px;width:100%;text-align:center;">
+              <div style="font-size:64px;margin-bottom:16px;">🔒</div>
+              <h1 style="font-size:24px;font-weight:800;color:#1e293b;margin:0 0 12px 0;">This calendar is private</h1>
+              <p style="color:#64748b;font-size:15px;line-height:1.7;margin:0 0 28px 0;">
+                ${ownerName ? `<strong>${ownerName}</strong> has` : 'This person has'} set their calendar to private.<br>
+                You can only view it if they make it public.
+              </p>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:28px;">
+                <p style="margin:0 0 6px 0;font-size:13px;color:#64748b;">Want your own shareable calendar?</p>
+                <p style="margin:0;font-size:14px;font-weight:600;color:#1e293b;">123Reminder is 100% free — set reminders, get daily email digests, and share with anyone.</p>
+              </div>
+              <a href="https://123reminder.com" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:700;box-shadow:0 4px 14px rgba(59,130,246,0.4);">Create My Free Account →</a>
+              <p style="margin:16px 0 0 0;font-size:12px;color:#94a3b8;">No credit card required · Free forever</p>
+            </div>
+          </div>`;
+        document.title = 'Private Calendar — 123Reminder';
+      }
+
       try {
-        const { data: profile } = await supabaseClient
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const viewerId = session?.user?.id;
+
+        const { data: profile, error } = await supabaseClient
           .from('profiles')
           .select('id, name, calendar_is_public')
           .eq('calendar_url_slug', path)
           .single();
 
-        if (!profile) return false;
-
-        // Check if it's the owner viewing their own calendar
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        const viewerId = session?.user?.id;
-        const isOwner = viewerId && viewerId === profile.id;
-
-        if (!profile.calendar_is_public && !isOwner) {
-          // Show a proper private calendar page — not a redirect
-          document.body.innerHTML = `
-            <div style="
-              min-height: 100vh;
-              background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-              display: flex; align-items: center; justify-content: center;
-              font-family: 'Inter', sans-serif; padding: 24px;
-            ">
-              <div style="
-                background: white; border-radius: 20px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-                padding: 48px 40px; max-width: 460px; width: 100%; text-align: center;
-              ">
-                <div style="font-size: 64px; margin-bottom: 16px;">🔒</div>
-                <h1 style="font-size: 24px; font-weight: 800; color: #1e293b; margin: 0 0 12px 0;">
-                  This calendar is private
-                </h1>
-                <p style="color: #64748b; font-size: 15px; line-height: 1.7; margin: 0 0 32px 0;">
-                  <strong>${profile.name || 'This person'}</strong> hasn't made their calendar public yet.
-                  Reach out to them and ask them to share it with you.
-                </p>
-                <div style="
-                  background: #f8fafc; border: 1px solid #e2e8f0;
-                  border-radius: 12px; padding: 20px; margin-bottom: 28px;
-                ">
-                  <p style="margin: 0 0 8px 0; font-size: 13px; color: #64748b;">
-                    Want your own calendar like this?
-                  </p>
-                  <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">
-                    123Reminder is free — create reminders, get daily email digests, and share your calendar with friends.
-                  </p>
-                </div>
-                <a href="https://123reminder.com" style="
-                  display: inline-block;
-                  background: linear-gradient(135deg, #3b82f6, #2563eb);
-                  color: white; text-decoration: none;
-                  padding: 14px 32px; border-radius: 12px;
-                  font-size: 15px; font-weight: 700;
-                  box-shadow: 0 4px 14px rgba(59,130,246,0.4);
-                ">Create My Free Account →</a>
-                <p style="margin: 16px 0 0 0; font-size: 12px; color: #94a3b8;">
-                  No credit card required
-                </p>
-              </div>
-            </div>`;
-          document.title = 'Private Calendar — 123Reminder';
+        // No profile found for this slug — show private page
+        // (could mean slug not saved yet, or doesn't exist)
+        if (!profile || error) {
+          // If the viewer is logged in, they might be the owner visiting their own URL
+          // — let the app load normally so they can use it
+          if (viewerId) return false;
+          showPrivatePage(null);
           return true;
         }
 
-        if (isOwner) {
-          // Owner visiting their own URL — just load normally
-          return false;
+        const isOwner = viewerId && viewerId === profile.id;
+
+        // Owner visiting their own URL — load normally
+        if (isOwner) return false;
+
+        // Not owner + private → show private page
+        if (!profile.calendar_is_public) {
+          showPrivatePage(profile.name);
+          return true;
         }
 
-        // Public calendar — load in read-only mode
+        // Public calendar — load reminders in read-only mode
         const { data: pubReminders } = await supabaseClient
           .from('reminders')
           .select('*')
@@ -5079,13 +5064,14 @@ You can change these settings anytime from your account menu.
         document.title = `${profile.name}'s Calendar — 123Reminder`;
         readonlyBadge.textContent = `👁️ Viewing ${profile.name}'s public calendar`;
         readonlyBadge.classList.add('visible');
-
-        // Disable double-click to add reminders for public views
         window._isPublicView = true;
         renderCalendar();
         return true;
+
       } catch (e) {
         console.warn('checkPublicCalendarRoute:', e.message);
+        // On any unexpected error, show private page rather than blank calendar
+        if (!window._supabaseSessionChecked) showPrivatePage(null);
         return false;
       }
     }
@@ -5163,7 +5149,6 @@ You can change these settings anytime from your account menu.
       applyPrivacyUI(isPublic);
 
       try {
-        // Use RPC function — bypasses RLS, handles upsert server-side
         const { error } = await supabaseClient.rpc('update_calendar_privacy', { is_public: isPublic });
         if (error) throw error;
 
