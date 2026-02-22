@@ -5163,16 +5163,22 @@ You can change these settings anytime from your account menu.
       const isPublic = calendarPublicToggle.checked;
       applyPrivacyUI(isPublic);
 
-      // Optimistic UI — save in background
       try {
+        // Use upsert instead of update — creates the row if it doesn't exist yet
+        // (Google OAuth users may not have a profiles row until their first save)
         const { error } = await supabaseClient
           .from('profiles')
-          .update({ calendar_is_public: isPublic, updated_at: new Date().toISOString() })
-          .eq('id', currentUser.id);
+          .upsert({
+            id: currentUser.id,
+            email: currentUser.email,
+            name: currentUser.name,
+            calendar_is_public: isPublic,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+
         if (error) throw error;
 
         if (isPublic) {
-          // Brief confirmation
           const slug = currentUser?.calendarSlug;
           const msg = slug
             ? `✅ Your calendar is now public!\n\nhttps://123reminder.com/${slug}\n\nAnyone with this link can view it.`
@@ -5181,7 +5187,6 @@ You can change these settings anytime from your account menu.
         }
       } catch (e) {
         console.error('Privacy toggle save error:', e.message);
-        // Revert on failure
         applyPrivacyUI(!isPublic);
         alert('Could not save privacy setting. Please try again.');
       }
