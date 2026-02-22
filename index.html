@@ -3221,16 +3221,12 @@
       }
 
       try {
-        const { data, error } = await supabaseClient
-          .from('reminders')
-          .select('*')
-          .eq('user_id', currentUser.id);
-
+        // Use RPC to bypass RLS — direct table queries return 500 errors
+        const { data, error } = await supabaseClient.rpc('get_my_reminders');
         if (error) throw error;
 
-        // Convert database format to app format
         reminders = {};
-        data.forEach(reminder => {
+        (data || []).forEach(reminder => {
           if (!reminders[reminder.date]) {
             reminders[reminder.date] = [];
           }
