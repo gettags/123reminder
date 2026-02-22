@@ -5132,11 +5132,10 @@ You can change these settings anytime from your account menu.
     async function loadPrivacySetting() {
       if (!currentUser) return;
       try {
-        // Use RPC to bypass RLS — direct table read is blocked by RLS on refresh
         const { data, error } = await supabaseClient.rpc('get_my_calendar_settings');
         if (error) throw error;
-        const row = Array.isArray(data) ? data[0] : data;
-        applyPrivacyUI(row?.calendar_is_public || false);
+        // data is a plain JSON object now
+        applyPrivacyUI(data?.calendar_is_public || false);
       } catch (e) {
         console.warn('loadPrivacySetting error:', e.message);
       }
