@@ -4996,7 +4996,6 @@ You can change these settings anytime from your account menu.
       const path = window.location.pathname.replace(/^\//, '').trim();
       if (!path || path === 'index.html') return false;
 
-      // Helper to show the private/unavailable page
       function showPrivatePage(ownerName) {
         document.body.innerHTML = `
           <div style="min-height:100vh;background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;padding:24px;">
@@ -5022,47 +5021,39 @@ You can change these settings anytime from your account menu.
         const { data: { session } } = await supabaseClient.auth.getSession();
         const viewerId = session?.user?.id;
 
-        const { data: profile, error } = await supabaseClient
-          .from('profiles')
-          .select('id, name, calendar_is_public')
-          .eq('calendar_url_slug', path)
-          .single();
+        // Use a single SECURITY DEFINER RPC — bypasses RLS for anon + authenticated
+        const { data, error } = await supabaseClient.rpc('get_public_calendar', { slug: path });
 
-        // No profile found for this slug — show private page
-        // (could mean slug not saved yet, or doesn't exist)
-        if (!profile || error) {
-          // If the viewer is logged in, they might be the owner visiting their own URL
-          // — let the app load normally so they can use it
-          if (viewerId) return false;
-          showPrivatePage(null);
-          return true;
+        if (error) {
+          console.warn('checkPublicCalendarRoute RPC error:', error.message);
+          if (!viewerId) showPrivatePage(null);
+          return !viewerId;
         }
 
-        const isOwner = viewerId && viewerId === profile.id;
+        // Not found
+        if (!data || data.status === 'not_found') {
+          if (!viewerId) { showPrivatePage(null); return true; }
+          return false;
+        }
 
         // Owner visiting their own URL — load normally
-        if (isOwner) return false;
+        if (viewerId && viewerId === data.id) return false;
 
-        // Not owner + private → show private page
-        if (!profile.calendar_is_public) {
-          showPrivatePage(profile.name);
+        // Private calendar
+        if (data.status === 'private') {
+          showPrivatePage(data.name);
           return true;
         }
 
         // Public calendar — load reminders in read-only mode
-        const { data: pubReminders } = await supabaseClient
-          .from('reminders')
-          .select('*')
-          .eq('user_id', profile.id);
-
         reminders = {};
-        (pubReminders || []).forEach(r => {
+        (data.reminders || []).forEach(r => {
           if (!reminders[r.date]) reminders[r.date] = [];
           reminders[r.date].push({ text: r.text, category: r.category, recurring: r.recurring });
         });
 
-        document.title = `${profile.name}'s Calendar — 123Reminder`;
-        readonlyBadge.textContent = `👁️ Viewing ${profile.name}'s public calendar`;
+        document.title = `${data.name}'s Calendar — 123Reminder`;
+        readonlyBadge.textContent = `👁️ Viewing ${data.name}'s public calendar`;
         readonlyBadge.classList.add('visible');
         window._isPublicView = true;
         renderCalendar();
@@ -5070,8 +5061,6 @@ You can change these settings anytime from your account menu.
 
       } catch (e) {
         console.warn('checkPublicCalendarRoute:', e.message);
-        // On any unexpected error, show private page rather than blank calendar
-        if (!window._supabaseSessionChecked) showPrivatePage(null);
         return false;
       }
     }
@@ -5132,10 +5121,11 @@ You can change these settings anytime from your account menu.
     async function loadPrivacySetting() {
       if (!currentUser) return;
       try {
+        // Use RPC to bypass RLS — direct table read is blocked by RLS on refresh
         const { data, error } = await supabaseClient.rpc('get_my_calendar_settings');
         if (error) throw error;
-        // data is a plain JSON object now
-        applyPrivacyUI(data?.calendar_is_public || false);
+        const row = Array.isArray(data) ? data[0] : data;
+        applyPrivacyUI(row?.calendar_is_public || false);
       } catch (e) {
         console.warn('loadPrivacySetting error:', e.message);
       }
