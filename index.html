@@ -4961,8 +4961,8 @@ You can change these settings anytime from your account menu.
             .select('*', { count: 'exact', head: true }).eq('calendar_url_slug', slug);
           if ((count || 0) > 0) slug = slug + '-' + Date.now().toString(36).slice(-4);
 
-          await supabaseClient.from('profiles')
-            .upsert({ id: currentUser.id, calendar_url_slug: slug, updated_at: new Date().toISOString() });
+          // Use RPC to bypass RLS — ensures profile row is created
+          await supabaseClient.rpc('update_calendar_slug', { new_slug: slug });
         }
 
         currentUser.calendarSlug = slug;
@@ -4971,7 +4971,6 @@ You can change these settings anytime from your account menu.
         personalUrlBanner.classList.add('active');
 
         // Update the browser address bar to show the user's personal URL
-        // (only if we're currently at the root — don't override gang or public routes)
         const currentPath = window.location.pathname.replace(/^\//, '').trim();
         if (!currentPath || currentPath === 'index.html') {
           window.history.replaceState({ slug }, '', '/' + slug);
@@ -5164,18 +5163,8 @@ You can change these settings anytime from your account menu.
       applyPrivacyUI(isPublic);
 
       try {
-        // Use upsert instead of update — creates the row if it doesn't exist yet
-        // (Google OAuth users may not have a profiles row until their first save)
-        const { error } = await supabaseClient
-          .from('profiles')
-          .upsert({
-            id: currentUser.id,
-            email: currentUser.email,
-            name: currentUser.name,
-            calendar_is_public: isPublic,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-
+        // Use RPC function — bypasses RLS, handles upsert server-side
+        const { error } = await supabaseClient.rpc('update_calendar_privacy', { is_public: isPublic });
         if (error) throw error;
 
         if (isPublic) {
@@ -5188,7 +5177,7 @@ You can change these settings anytime from your account menu.
       } catch (e) {
         console.error('Privacy toggle save error:', e.message);
         applyPrivacyUI(!isPublic);
-        alert('Could not save privacy setting. Please try again.');
+        alert('Could not save privacy setting: ' + e.message);
       }
     });
 
