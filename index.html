@@ -2265,8 +2265,12 @@
       margin-bottom: 14px;
       font-size: 13px;
       flex-wrap: wrap;
+      transition: background 0.4s ease;
     }
     .personal-url-banner.active { display: flex; }
+    .personal-url-banner.is-private {
+      background: linear-gradient(135deg, #64748b, #475569);
+    }
     .personal-url-text { font-weight: 700; font-size: 14px; flex: 1; }
     .personal-url-copy {
       background: white;
@@ -2279,6 +2283,51 @@
       cursor: pointer;
     }
     .personal-url-copy:hover { opacity: 0.85; }
+
+    /* Public/Private toggle */
+    .privacy-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 4px 12px 4px 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .privacy-toggle-wrap:hover { background: rgba(255,255,255,0.25); }
+    .privacy-toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .privacy-toggle input { opacity: 0; width: 0; height: 0; }
+    .privacy-toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.3);
+      border-radius: 20px;
+      transition: background 0.3s;
+    }
+    .privacy-toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      left: 3px; top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .privacy-toggle input:checked + .privacy-toggle-slider { background: #22c55e; }
+    .privacy-toggle input:checked + .privacy-toggle-slider::before { transform: translateX(16px); }
+    .privacy-toggle-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      white-space: nowrap;
+    }
 
     /* Gang creation modal */
     .gang-modal-backdrop {
@@ -2568,9 +2617,16 @@
 
         <!-- Personal URL Banner (shown when logged in) -->
         <div class="personal-url-banner" id="personalUrlBanner">
-          <span>🔗 Your shareable link:</span>
+          <span>🔗</span>
           <span class="personal-url-text" id="personalUrlText">123reminder.com/...</span>
-          <button class="personal-url-copy" id="personalUrlCopy">Copy</button>
+          <button class="personal-url-copy" id="personalUrlCopy">Copy Link</button>
+          <label class="privacy-toggle-wrap" title="Toggle public/private">
+            <div class="privacy-toggle">
+              <input type="checkbox" id="calendarPublicToggle">
+              <span class="privacy-toggle-slider"></span>
+            </div>
+            <span class="privacy-toggle-label" id="privacyToggleLabel">🔒 Private</span>
+          </label>
         </div>
 
         <!-- Calendar Switcher Row -->
@@ -4948,17 +5004,68 @@ You can change these settings anytime from your account menu.
           .single();
 
         if (!profile) return false;
-        if (!profile.calendar_is_public) {
-          // Show "private calendar" notice if it's not the owner
-          if (!currentUser || currentUser.id !== profile.id) {
-            alert(`🔒 This calendar is private.`);
-            window.location.href = '/';
-            return true;
-          }
+
+        // Check if it's the owner viewing their own calendar
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const viewerId = session?.user?.id;
+        const isOwner = viewerId && viewerId === profile.id;
+
+        if (!profile.calendar_is_public && !isOwner) {
+          // Show a proper private calendar page — not a redirect
+          document.body.innerHTML = `
+            <div style="
+              min-height: 100vh;
+              background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+              display: flex; align-items: center; justify-content: center;
+              font-family: 'Inter', sans-serif; padding: 24px;
+            ">
+              <div style="
+                background: white; border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+                padding: 48px 40px; max-width: 460px; width: 100%; text-align: center;
+              ">
+                <div style="font-size: 64px; margin-bottom: 16px;">🔒</div>
+                <h1 style="font-size: 24px; font-weight: 800; color: #1e293b; margin: 0 0 12px 0;">
+                  This calendar is private
+                </h1>
+                <p style="color: #64748b; font-size: 15px; line-height: 1.7; margin: 0 0 32px 0;">
+                  <strong>${profile.name || 'This person'}</strong> hasn't made their calendar public yet.
+                  Reach out to them and ask them to share it with you.
+                </p>
+                <div style="
+                  background: #f8fafc; border: 1px solid #e2e8f0;
+                  border-radius: 12px; padding: 20px; margin-bottom: 28px;
+                ">
+                  <p style="margin: 0 0 8px 0; font-size: 13px; color: #64748b;">
+                    Want your own calendar like this?
+                  </p>
+                  <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">
+                    123Reminder is free — create reminders, get daily email digests, and share your calendar with friends.
+                  </p>
+                </div>
+                <a href="https://123reminder.com" style="
+                  display: inline-block;
+                  background: linear-gradient(135deg, #3b82f6, #2563eb);
+                  color: white; text-decoration: none;
+                  padding: 14px 32px; border-radius: 12px;
+                  font-size: 15px; font-weight: 700;
+                  box-shadow: 0 4px 14px rgba(59,130,246,0.4);
+                ">Create My Free Account →</a>
+                <p style="margin: 16px 0 0 0; font-size: 12px; color: #94a3b8;">
+                  No credit card required
+                </p>
+              </div>
+            </div>`;
+          document.title = 'Private Calendar — 123Reminder';
+          return true;
+        }
+
+        if (isOwner) {
+          // Owner visiting their own URL — just load normally
           return false;
         }
 
-        // Load that user's reminders in read-only mode
+        // Public calendar — load in read-only mode
         const { data: pubReminders } = await supabaseClient
           .from('reminders')
           .select('*')
@@ -5015,6 +5122,76 @@ You can change these settings anytime from your account menu.
         return; // Silently block edits on public calendars
       }
       _origOpenReminderModal(dateKey, year, monthIdx, day);
+    };
+
+    // ============================================
+    // PUBLIC / PRIVATE TOGGLE
+    // ============================================
+
+    const calendarPublicToggle = document.getElementById('calendarPublicToggle');
+    const privacyToggleLabel   = document.getElementById('privacyToggleLabel');
+    const personalUrlBannerEl  = document.getElementById('personalUrlBanner');
+
+    function applyPrivacyUI(isPublic) {
+      calendarPublicToggle.checked = isPublic;
+      if (isPublic) {
+        privacyToggleLabel.textContent = '🌐 Public';
+        personalUrlBannerEl.classList.remove('is-private');
+      } else {
+        privacyToggleLabel.textContent = '🔒 Private';
+        personalUrlBannerEl.classList.add('is-private');
+      }
+    }
+
+    // Load current privacy setting when user logs in
+    async function loadPrivacySetting() {
+      if (!currentUser) return;
+      try {
+        const { data } = await supabaseClient
+          .from('profiles')
+          .select('calendar_is_public')
+          .eq('id', currentUser.id)
+          .single();
+        applyPrivacyUI(data?.calendar_is_public || false);
+      } catch (e) {
+        console.warn('loadPrivacySetting error:', e.message);
+      }
+    }
+
+    // Toggle handler — saves to Supabase immediately
+    calendarPublicToggle.addEventListener('change', async () => {
+      const isPublic = calendarPublicToggle.checked;
+      applyPrivacyUI(isPublic);
+
+      // Optimistic UI — save in background
+      try {
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ calendar_is_public: isPublic, updated_at: new Date().toISOString() })
+          .eq('id', currentUser.id);
+        if (error) throw error;
+
+        if (isPublic) {
+          // Brief confirmation
+          const slug = currentUser?.calendarSlug;
+          const msg = slug
+            ? `✅ Your calendar is now public!\n\nhttps://123reminder.com/${slug}\n\nAnyone with this link can view it.`
+            : '✅ Your calendar is now public!';
+          alert(msg);
+        }
+      } catch (e) {
+        console.error('Privacy toggle save error:', e.message);
+        // Revert on failure
+        applyPrivacyUI(!isPublic);
+        alert('Could not save privacy setting. Please try again.');
+      }
+    });
+
+    // Hook into ensurePersonalUrl to also load privacy setting
+    const _origEnsurePersonalUrl = ensurePersonalUrl;
+    ensurePersonalUrl = async function() {
+      await _origEnsurePersonalUrl();
+      await loadPrivacySetting();
     };
 
     // Start the app
