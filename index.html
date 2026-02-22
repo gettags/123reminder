@@ -4913,6 +4913,14 @@ You can change these settings anytime from your account menu.
         const fullUrl = `123reminder.com/${slug}`;
         personalUrlText.textContent = fullUrl;
         personalUrlBanner.classList.add('active');
+
+        // Update the browser address bar to show the user's personal URL
+        // (only if we're currently at the root — don't override gang or public routes)
+        const currentPath = window.location.pathname.replace(/^\//, '').trim();
+        if (!currentPath || currentPath === 'index.html') {
+          window.history.replaceState({ slug }, '', '/' + slug);
+        }
+
       } catch (e) {
         console.warn('ensurePersonalUrl error:', e.message);
       }
@@ -4920,7 +4928,7 @@ You can change these settings anytime from your account menu.
 
     // Copy personal URL
     personalUrlCopy.addEventListener('click', () => {
-      const url = 'https://' + personalUrlText.textContent;
+      const url = 'https://123reminder.com/' + currentUser?.calendarSlug;
       navigator.clipboard.writeText(url).then(() => {
         personalUrlCopy.textContent = '✅ Copied!';
         setTimeout(() => { personalUrlCopy.textContent = 'Copy'; }, 2000);
