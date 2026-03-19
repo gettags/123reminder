@@ -3257,20 +3257,12 @@
         return;
       }
 
-      // Save all reminders to database
       try {
-        // Delete all existing reminders for this user
-        await supabaseClient
-          .from('reminders')
-          .delete()
-          .eq('user_id', currentUser.id);
-
-        // Insert all current reminders
-        const remindersToInsert = [];
+        // Build reminders array
+        const remindersToSave = [];
         Object.entries(reminders).forEach(([date, reminderList]) => {
           reminderList.forEach(reminder => {
-            remindersToInsert.push({
-              user_id: currentUser.id,
+            remindersToSave.push({
               date: date,
               text: reminder.text,
               category: reminder.category
@@ -3278,14 +3270,12 @@
           });
         });
 
-        if (remindersToInsert.length > 0) {
-          const { error } = await supabaseClient
-            .from('reminders')
-            .insert(remindersToInsert);
+        // Use RPC — does delete+insert atomically, bypasses RLS
+        const { error } = await supabaseClient.rpc('save_my_reminders', {
+          reminder_data: JSON.stringify(remindersToSave)
+        });
 
-          if (error) throw error;
-        }
-
+        if (error) throw error;
         console.log('Saved to database successfully!');
       } catch (error) {
         console.error('Error saving reminders:', error);
