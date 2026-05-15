@@ -3932,16 +3932,9 @@
           currentUser.emailNotificationsEnabled = false;
         }
 
-        // Show email reminders button if not yet enabled
-        if (!currentUser.emailNotificationsEnabled) {
-          emailRemindersBtn.textContent = '📧 Enable Email Reminders';
-          emailRemindersBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-          emailRemindersBtn.style.display = 'inline-flex';
-        } else {
-          emailRemindersBtn.textContent = '🔕 Disable Email Reminders';
-          emailRemindersBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
-          emailRemindersBtn.style.display = 'inline-flex';
-        }
+        // Show email reminders button with correct state
+        emailRemindersBtn.style.display = 'inline-flex';
+        updateEmailBtn(currentUser.emailNotificationsEnabled || false);
         
         userName.textContent = currentUser.name;
         userAvatar.src = currentUser.photo || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233b82f6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
@@ -3969,69 +3962,66 @@
       localStorage.removeItem('123Reminder_user');
     }
 
-    // --- Notification Functions ---
-    function showNotificationModal() {
+    // --- Email Notification Toggle ---
+    async function toggleEmailReminders() {
       if (!currentUser) {
         alert('⚠️ Please sign in first to enable email reminders!');
-        showAuthModal();
         return;
       }
-      
-      // Update email display
-      notificationEmail.textContent = `Notifications will be sent to: ${currentUser.email}`;
-      notificationModal.style.display = 'flex';
-    }
 
-    function hideNotificationModal() {
-      notificationModal.style.display = 'none';
-    }
-
-    async function enableEmailNotifications() {
-      if (!currentUser) return;
+      const isCurrentlyEnabled = currentUser.emailNotificationsEnabled;
 
       try {
-        // Save notification preferences to Supabase
-        const { error } = await supabaseClient
-          .from('notification_preferences')
-          .upsert({
-            user_id: currentUser.id,
-            email: currentUser.email,
-            notification_time: selectedNotificationTime,
-            enabled: true,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' });
+        if (!isCurrentlyEnabled) {
+          // ENABLE
+          const { error } = await supabaseClient
+            .from('notification_preferences')
+            .upsert({
+              user_id: currentUser.id,
+              email: currentUser.email,
+              notification_time: '08:00',
+              enabled: true,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
 
-        if (error) {
-          console.warn('Could not save to notification_preferences table:', error.message);
-          // Still save locally as fallback
+          if (error) throw error;
+
+          currentUser.emailNotificationsEnabled = true;
+          localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
+          updateEmailBtn(true);
+          alert(`✅ Email reminders enabled!\n\nYou'll receive a daily email at 7 AM IST with your reminders.\n📧 Sent to: ${currentUser.email}`);
+
+        } else {
+          // DISABLE
+          const { error } = await supabaseClient
+            .from('notification_preferences')
+            .upsert({
+              user_id: currentUser.id,
+              email: currentUser.email,
+              notification_time: '08:00',
+              enabled: false,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+
+          if (error) throw error;
+
+          currentUser.emailNotificationsEnabled = false;
+          localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
+          updateEmailBtn(false);
         }
+      } catch (e) {
+        console.error('Email toggle error:', e.message);
+        alert('⚠️ Could not update email preferences. Please try again.');
+      }
+    }
 
-        // Save to localStorage as backup
-        currentUser.emailNotificationsEnabled = true;
-        currentUser.notificationTime = selectedNotificationTime;
-        localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
-
-        // Hide the modal
-        hideNotificationModal();
-
-        // Hide the enable button
-        emailRemindersBtn.style.display = 'none';
-
-        // Show success message
-        alert(`✅ Email Reminders Enabled!
-
-You'll receive a daily email at ${selectedNotificationTime} with all your reminders for the day.
-
-📧 Sent to: ${currentUser.email}
-⏰ Time: ${selectedNotificationTime}
-
-You can change these settings anytime from your account menu.
-
-💡 Want WhatsApp reminders too? Coming soon for just ₹35/month!`);
-
-      } catch (err) {
-        console.error('enableEmailNotifications error:', err);
-        alert('⚠️ Could not save notification preferences. Please try again.');
+    function updateEmailBtn(enabled) {
+      if (enabled) {
+        emailRemindersBtn.innerHTML = '✅ Email Reminders Enabled &nbsp;·&nbsp; Click to Disable';
+        emailRemindersBtn.style.background = 'linear-gradient(135deg, #64748b, #475569)';
+      } else {
+        emailRemindersBtn.innerHTML = '📧 Enable Email Reminders';
+        emailRemindersBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
       }
     }
 
@@ -4171,17 +4161,22 @@ You can change these settings anytime from your account menu.
     
     // Notification event listeners
     if (emailRemindersBtn) {
-      emailRemindersBtn.addEventListener('click', showNotificationModal);
+      emailRemindersBtn.addEventListener('click', toggleEmailReminders);
     }
-    if (notificationSettings) {
-      notificationSettings.addEventListener('click', showNotificationModal);
+    if (cancelNotificationBtn) {
+      cancelNotificationBtn.addEventListener('click', () => {
+        if (notificationModal) notificationModal.style.display = 'none';
+      });
     }
-    cancelNotificationBtn.addEventListener('click', hideNotificationModal);
-    enableNotificationBtn.addEventListener('click', enableEmailNotifications);
-    upgradeFromNotifBtn.addEventListener('click', () => {
-      hideNotificationModal();
-      alert('🚀 Coming Soon!\n\nWhatsApp notifications and Premium features are coming soon!\n\nStay tuned for:\n✅ WhatsApp daily reminders\n✅ Ad-free experience\n✅ Priority support\n\nPrice: ₹35/month');
-    });
+    if (enableNotificationBtn) {
+      enableNotificationBtn.addEventListener('click', toggleEmailReminders);
+    }
+    if (upgradeFromNotifBtn) {
+      upgradeFromNotifBtn.addEventListener('click', () => {
+        if (notificationModal) notificationModal.style.display = 'none';
+        alert('🚀 Coming Soon!\n\nWhatsApp notifications and Premium features are coming soon!\n\nStay tuned for:\n✅ WhatsApp daily reminders\n✅ Ad-free experience\n✅ Priority support\n\nPrice: ₹35/month');
+      });
+    }
     
     // Upgrade button handler (for Coming Soon message)
     document.querySelector('.upgrade-btn')?.addEventListener('click', () => {
