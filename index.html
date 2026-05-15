@@ -4748,6 +4748,8 @@ You can change these settings anytime from your account menu.
 
     // --- Rebuild the calendar switcher dropdown ---
     function rebuildCalendarSwitcher() {
+      // Save current value and remove listener temporarily to prevent spurious change events
+      const currentVal = calendarSwitcher.value;
       calendarSwitcher.innerHTML = '<option value="personal">My Personal Calendar</option>';
       userGangs.forEach(g => {
         const opt = document.createElement('option');
@@ -4755,6 +4757,10 @@ You can change these settings anytime from your account menu.
         opt.textContent = '🤝 ' + g.name;
         calendarSwitcher.appendChild(opt);
       });
+      // Restore previous selection without firing change event
+      if (currentVal && calendarSwitcher.querySelector(`option[value="${currentVal}"]`)) {
+        calendarSwitcher.value = currentVal;
+      }
     }
 
     // --- Switch between calendars ---
