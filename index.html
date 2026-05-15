@@ -3869,6 +3869,13 @@
 
     function hideAuthModal() {
       authModal.style.display = 'none';
+      // If user signed in while viewing someone else's calendar, redirect to their own
+      if (currentUser?.calendarSlug) {
+        const currentPath = window.location.pathname.replace(/^\//, '').trim();
+        if (currentPath && currentPath !== currentUser.calendarSlug) {
+          window.location.href = '/' + currentUser.calendarSlug;
+        }
+      }
     }
 
     function checkAuthStatus() {
