@@ -3965,32 +3965,37 @@
       }
 
       const isCurrentlyEnabled = currentUser.emailNotificationsEnabled;
+      const newState = !isCurrentlyEnabled;
 
       try {
-        const { error } = await supabaseClient
-          .from('notification_preferences')
-          .upsert({
-            user_id: currentUser.id,
-            email: currentUser.email,
-            notification_time: '08:00',
-            enabled: !isCurrentlyEnabled,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' });
-
+        const { error } = await supabaseClient.rpc('set_notification_pref', { is_enabled: newState });
         if (error) throw error;
 
-        currentUser.emailNotificationsEnabled = !isCurrentlyEnabled;
+        currentUser.emailNotificationsEnabled = newState;
         localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
-        updateEmailBtn(!isCurrentlyEnabled);
+        updateEmailBtn(newState);
 
-        if (!isCurrentlyEnabled) {
-          alert(`✅ Email reminders enabled!\n\nYou'll receive a daily email at 7 AM IST with your reminders.\n📧 Sent to: ${currentUser.email}`);
-        }
+        // Show brief toast instead of alert (avoids Chrome focus issues)
+        showToast(newState ? '✅ Email reminders enabled! You\'ll get daily emails at 7 AM IST.' : '🔕 Email reminders disabled.');
 
       } catch (e) {
         console.error('Email toggle error:', e.message);
-        alert('⚠️ Could not update email preferences. Please try again.');
+        alert('⚠️ Could not update email preferences: ' + e.message);
       }
+    }
+
+    function showToast(message) {
+      let toast = document.getElementById('appToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'appToast';
+        toast.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;font-weight:500;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.3s;';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.style.opacity = '1';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
     }
 
     function updateEmailBtn(enabled) {
@@ -4226,7 +4231,7 @@
           // Load reminders from database
           await loadRemindersFromDB();
           
-          updateUIForSignedInUser();
+          await updateUIForSignedInUser();
           renderCalendar();
         } else {
           currentUser = null;
