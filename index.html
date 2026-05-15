@@ -4114,9 +4114,27 @@ You can change these settings anytime from your account menu.
       const password = signinPassword.value;
       if (!email || !password) { alert('⚠️ Please enter your email and password'); return; }
       try {
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
+
+        // Set current user
+        currentUser = {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.user_metadata?.name || data.user.user_metadata?.full_name || email.split('@')[0],
+        };
+
+        // Load reminders and update UI — same as Google OAuth flow
+        await loadRemindersFromDB();
+        await updateUIForSignedInUser();
+        renderCalendar();
+
+        // Hide modal — will redirect if on someone else's calendar
         hideAuthModal();
+
+        signinEmail.value = '';
+        signinPassword.value = '';
+
       } catch (error) {
         alert('⚠️ ' + (error.message || 'Could not sign in. Please check your credentials.'));
       }
