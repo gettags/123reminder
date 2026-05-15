@@ -3919,15 +3919,10 @@
         userDropdown.style.display = 'block';
         logoutBtn.style.display = 'inline-flex';
         
-        // Check notification preferences from Supabase
+        // Check notification preferences via RPC (bypasses RLS)
         try {
-          const { data: notifPref } = await supabaseClient
-            .from('notification_preferences')
-            .select('enabled')
-            .eq('user_id', currentUser.id)
-            .single();
-          
-          currentUser.emailNotificationsEnabled = notifPref?.enabled || false;
+          const { data: notifEnabled } = await supabaseClient.rpc('get_my_notification_pref');
+          currentUser.emailNotificationsEnabled = notifEnabled || false;
         } catch (e) {
           currentUser.emailNotificationsEnabled = false;
         }
@@ -3972,43 +3967,26 @@
       const isCurrentlyEnabled = currentUser.emailNotificationsEnabled;
 
       try {
+        const { error } = await supabaseClient
+          .from('notification_preferences')
+          .upsert({
+            user_id: currentUser.id,
+            email: currentUser.email,
+            notification_time: '08:00',
+            enabled: !isCurrentlyEnabled,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+
+        if (error) throw error;
+
+        currentUser.emailNotificationsEnabled = !isCurrentlyEnabled;
+        localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
+        updateEmailBtn(!isCurrentlyEnabled);
+
         if (!isCurrentlyEnabled) {
-          // ENABLE
-          const { error } = await supabaseClient
-            .from('notification_preferences')
-            .upsert({
-              user_id: currentUser.id,
-              email: currentUser.email,
-              notification_time: '08:00',
-              enabled: true,
-              updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id' });
-
-          if (error) throw error;
-
-          currentUser.emailNotificationsEnabled = true;
-          localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
-          updateEmailBtn(true);
           alert(`✅ Email reminders enabled!\n\nYou'll receive a daily email at 7 AM IST with your reminders.\n📧 Sent to: ${currentUser.email}`);
-
-        } else {
-          // DISABLE
-          const { error } = await supabaseClient
-            .from('notification_preferences')
-            .upsert({
-              user_id: currentUser.id,
-              email: currentUser.email,
-              notification_time: '08:00',
-              enabled: false,
-              updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id' });
-
-          if (error) throw error;
-
-          currentUser.emailNotificationsEnabled = false;
-          localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
-          updateEmailBtn(false);
         }
+
       } catch (e) {
         console.error('Email toggle error:', e.message);
         alert('⚠️ Could not update email preferences. Please try again.');
@@ -4016,6 +3994,7 @@
     }
 
     function updateEmailBtn(enabled) {
+      if (!emailRemindersBtn) return;
       if (enabled) {
         emailRemindersBtn.innerHTML = '✅ Email Reminders Enabled &nbsp;·&nbsp; Click to Disable';
         emailRemindersBtn.style.background = 'linear-gradient(135deg, #64748b, #475569)';
@@ -4268,11 +4247,10 @@
         if (userDropdown) userDropdown.style.display = 'block';
         if (logoutBtn) logoutBtn.style.display = 'inline-flex';
         
-        // Show email reminders button if not yet enabled
-        if (!currentUser.emailNotificationsEnabled && emailRemindersBtn) {
+        // Show email reminders button with correct state
+        if (emailRemindersBtn) {
           emailRemindersBtn.style.display = 'inline-flex';
-        } else if (emailRemindersBtn) {
-          emailRemindersBtn.style.display = 'none';
+          updateEmailBtn(currentUser.emailNotificationsEnabled || false);
         }
         
         if (userName) userName.textContent = currentUser.name;
