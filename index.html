@@ -4902,22 +4902,15 @@ You can change these settings anytime from your account menu.
     async function ensurePersonalUrl() {
       if (!currentUser) return;
       try {
-        // Check if slug already exists
-        const { data: profile } = await supabaseClient
-          .from('profiles').select('calendar_url_slug, name').eq('id', currentUser.id).single();
+        // Use RPC to bypass RLS — direct profiles queries return 500 errors
+        const { data: profile } = await supabaseClient.rpc('get_my_profile');
 
         let slug = profile?.calendar_url_slug;
         if (!slug) {
           // Generate from name
           const baseName = profile?.name || currentUser.name || currentUser.email.split('@')[0];
           slug = makeSlug(baseName);
-          // Make unique: check if taken
-          const { count } = await supabaseClient.from('profiles')
-            .select('*', { count: 'exact', head: true }).eq('calendar_url_slug', slug);
-          if ((count || 0) > 0) slug = slug + '-' + Date.now().toString(36).slice(-4);
-
-          await supabaseClient.from('profiles')
-            .upsert({ id: currentUser.id, calendar_url_slug: slug, updated_at: new Date().toISOString() });
+          await supabaseClient.rpc('update_calendar_slug', { new_slug: slug });
         }
 
         currentUser.calendarSlug = slug;
@@ -4925,8 +4918,7 @@ You can change these settings anytime from your account menu.
         personalUrlText.textContent = fullUrl;
         personalUrlBanner.classList.add('active');
 
-        // Update the browser address bar to show the user's personal URL
-        // (only if we're currently at the root — don't override gang or public routes)
+        // Update the browser address bar
         const currentPath = window.location.pathname.replace(/^\//, '').trim();
         if (!currentPath || currentPath === 'index.html') {
           window.history.replaceState({ slug }, '', '/' + slug);
