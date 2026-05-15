@@ -3578,6 +3578,7 @@
       // Show month tabs and weekday row for month view
       monthTabsEl.style.display = 'flex';
       weekdayRowEl.style.display = 'grid';
+      buildWeekdayRow();
       
       calendarGridEl.className = 'calendar-grid';
       calendarGridEl.innerHTML = "";
@@ -3919,11 +3920,28 @@
         userDropdown.style.display = 'block';
         logoutBtn.style.display = 'inline-flex';
         
+        // Check notification preferences from Supabase
+        try {
+          const { data: notifPref } = await supabaseClient
+            .from('notification_preferences')
+            .select('enabled')
+            .eq('user_id', currentUser.id)
+            .single();
+          
+          currentUser.emailNotificationsEnabled = notifPref?.enabled || false;
+        } catch (e) {
+          currentUser.emailNotificationsEnabled = false;
+        }
+
         // Show email reminders button if not yet enabled
         if (!currentUser.emailNotificationsEnabled) {
+          emailRemindersBtn.textContent = '📧 Enable Email Reminders';
+          emailRemindersBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
           emailRemindersBtn.style.display = 'inline-flex';
         } else {
-          emailRemindersBtn.style.display = 'none';
+          emailRemindersBtn.textContent = '🔕 Disable Email Reminders';
+          emailRemindersBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+          emailRemindersBtn.style.display = 'inline-flex';
         }
         
         userName.textContent = currentUser.name;
