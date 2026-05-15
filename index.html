@@ -79,7 +79,7 @@
       box-shadow: var(--shadow-lg);
       padding: 24px;
       position: relative;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .calendar-app::before {
@@ -3578,7 +3578,6 @@
       // Show month tabs and weekday row for month view
       monthTabsEl.style.display = 'flex';
       weekdayRowEl.style.display = 'grid';
-      buildWeekdayRow();
       
       calendarGridEl.className = 'calendar-grid';
       calendarGridEl.innerHTML = "";
