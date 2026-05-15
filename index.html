@@ -4747,10 +4747,11 @@ You can change these settings anytime from your account menu.
     }
 
     // --- Rebuild the calendar switcher dropdown ---
+    let _switcherRebuilding = false;
+
     function rebuildCalendarSwitcher() {
       const currentVal = calendarSwitcher.value;
-      // Set flag BEFORE changing innerHTML to suppress the change event
-      calendarSwitcher._rebuilding = true;
+      _switcherRebuilding = true;
       calendarSwitcher.innerHTML = '<option value="personal">My Personal Calendar</option>';
       userGangs.forEach(g => {
         const opt = document.createElement('option');
@@ -4758,18 +4759,15 @@ You can change these settings anytime from your account menu.
         opt.textContent = '🤝 ' + g.name;
         calendarSwitcher.appendChild(opt);
       });
-      // Restore previous selection
       if (currentVal && calendarSwitcher.querySelector(`option[value="${currentVal}"]`)) {
         calendarSwitcher.value = currentVal;
       }
-      // Clear flag after a tick so any queued change events are ignored
-      setTimeout(() => { calendarSwitcher._rebuilding = false; }, 50);
+      _switcherRebuilding = false;
     }
 
     // --- Switch between calendars ---
     calendarSwitcher.addEventListener('change', () => {
-      // Ignore change events fired during dropdown rebuild (Chrome fires these spuriously)
-      if (calendarSwitcher._rebuilding) return;
+      if (_switcherRebuilding) return;
       const val = calendarSwitcher.value;
       if (val === 'personal') {
         switchToCalendar('personal', null);
