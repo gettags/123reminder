@@ -4984,8 +4984,14 @@ You can change these settings anytime from your account menu.
 
         // Not found
         if (!data || data.status === 'not_found') {
-          if (!viewerId) { showPrivatePage(null); return true; }
-          return false;
+          if (viewerId) {
+            // Check if this path belongs to the logged-in user's own slug
+            const { data: ownSettings } = await supabaseClient.rpc('get_my_calendar_settings');
+            if (ownSettings?.calendar_url_slug === path) return false;
+          }
+          // Unknown slug — show private/not-found page
+          showPrivatePage(null);
+          return true;
         }
 
         // Owner visiting their own URL — load normally
