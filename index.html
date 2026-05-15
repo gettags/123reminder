@@ -2770,70 +2770,66 @@
     <div class="auth-container">
       <div class="auth-header">
         <div class="auth-logo">📅</div>
-        <h2 class="auth-title">Welcome to 123Reminder</h2>
-        <p class="auth-subtitle">Sign in to unlock all features</p>
+        <h2 class="auth-title" id="authTitle">Create Account</h2>
+        <p class="auth-subtitle" id="authSubtitle">Sign up to save your reminders forever</p>
       </div>
 
-      <div class="auth-benefits">
+      <div class="auth-benefits" id="authBenefits">
         <div class="auth-benefit">✅ Save reminders forever (cloud sync)</div>
         <div class="auth-benefit">✅ Access from any device</div>
-        <div class="auth-benefit">✅ Get email notifications</div>
-        <div class="auth-benefit">✅ Upgrade to WhatsApp reminders (₹35/month)</div>
+        <div class="auth-benefit">✅ Get daily email reminders</div>
+        <div class="auth-benefit">✅ Share your calendar with friends</div>
       </div>
 
-      <!-- Email/Password Form -->
-      <div class="auth-form" id="authForm">
-        <div class="form-group">
-          <input type="text" class="auth-input" id="authName" placeholder="Your name (e.g., David, Sunil)" required>
-        </div>
-        <div class="form-group">
-          <input type="email" class="auth-input" id="authEmail" placeholder="Email address (any email works!)" required>
-        </div>
-        <div class="form-group">
-          <input type="password" class="auth-input" id="authPassword" placeholder="Password (min 6 characters)" required>
-        </div>
-        
-        <!-- Privacy Policy Checkbox -->
-        <div class="form-group" style="margin-top: 16px;">
-          <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; line-height: 1.5;">
-            <input type="checkbox" id="privacyCheckbox" required style="margin-top: 3px; cursor: pointer; width: 16px; height: 16px; flex-shrink: 0;">
-            <span>
-              I agree to the <a href="#" id="privacyPolicyLink" style="color: var(--accent-primary); text-decoration: underline;">Privacy Policy</a> and <a href="#" id="termsLink" style="color: var(--accent-primary); text-decoration: underline;">Terms of Service</a>
-            </span>
-          </label>
-        </div>
-        
-        <button class="auth-submit-btn" id="emailSigninBtn">
-          <span id="authBtnText">Sign In / Sign Up</span>
-        </button>
-
-        <div class="auth-note" style="margin-top: 12px; font-size: 12px;">
-          📧 Works with any email: Gmail, Yahoo, Outlook, etc.
-        </div>
-      </div>
-
-      <div class="auth-divider">
-        <span>OR</span>
-      </div>
-
-      <!-- Google Sign-In -->
-      <button class="google-signin-btn" id="googleSigninBtn">
+      <!-- Google Button -->
+      <button class="google-signin-btn" id="googleSigninBtn" style="margin-top:16px;">
         <svg class="google-icon" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
         </svg>
-        <span>Continue with Google</span>
+        <span id="googleBtnText">Sign up with Google</span>
       </button>
 
-      <div class="auth-skip">
-        <button class="auth-skip-btn" id="skipSignin">Continue without signing in</button>
+      <div class="auth-divider"><span>OR</span></div>
+
+      <!-- Sign Up Form -->
+      <div id="signupForm">
+        <div class="form-group">
+          <input type="text" class="auth-input" id="authName" placeholder="Your name (e.g. Sriteja, Rashmi)">
+        </div>
+        <div class="form-group">
+          <input type="email" class="auth-input" id="authEmail" placeholder="Email address">
+        </div>
+        <div class="form-group">
+          <input type="password" class="auth-input" id="authPassword" placeholder="Password (min 6 characters)">
+        </div>
+        <div class="form-group">
+          <input type="password" class="auth-input" id="authConfirmPassword" placeholder="Confirm password">
+        </div>
+        <button class="auth-submit-btn" id="emailSigninBtn">Create Account</button>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary);">
+          Already have an account? <a href="#" id="switchToSignin" style="color:var(--accent-primary);font-weight:600;">Sign in</a>
+        </p>
       </div>
 
-      <div class="auth-note">
-        By signing in, you agree to our Terms of Service and Privacy Policy.
-        <br>Your reminders are stored locally until you sign in.
+      <!-- Sign In Form -->
+      <div id="signinForm" style="display:none;">
+        <div class="form-group">
+          <input type="email" class="auth-input" id="signinEmail" placeholder="Email address">
+        </div>
+        <div class="form-group">
+          <input type="password" class="auth-input" id="signinPassword" placeholder="Password">
+        </div>
+        <button class="auth-submit-btn" id="signinBtn2">Sign In</button>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary);">
+          Don't have an account? <a href="#" id="switchToSignup" style="color:var(--accent-primary);font-weight:600;">Sign up</a>
+        </p>
+      </div>
+
+      <div class="auth-note" style="margin-top:16px;">
+        By continuing, you agree to our <a href="#" style="color:var(--accent-primary);">Terms of Service</a> and <a href="#" style="color:var(--accent-primary);">Privacy Policy</a>.
       </div>
     </div>
   </div>
@@ -3155,7 +3151,38 @@
     const authName = document.getElementById("authName");
     const authEmail = document.getElementById("authEmail");
     const authPassword = document.getElementById("authPassword");
-    const skipSignin = document.getElementById("skipSignin");
+    const authConfirmPassword = document.getElementById("authConfirmPassword");
+    const signinEmail = document.getElementById("signinEmail");
+    const signinPassword = document.getElementById("signinPassword");
+    const signinBtn2 = document.getElementById("signinBtn2");
+    const signupForm = document.getElementById("signupForm");
+    const signinForm = document.getElementById("signinForm");
+    const authTitle = document.getElementById("authTitle");
+    const authSubtitle = document.getElementById("authSubtitle");
+    const authBenefits = document.getElementById("authBenefits");
+    const googleBtnText = document.getElementById("googleBtnText");
+
+    // Toggle to Sign In screen
+    document.getElementById("switchToSignin")?.addEventListener('click', (e) => {
+      e.preventDefault();
+      signupForm.style.display = 'none';
+      signinForm.style.display = 'block';
+      authTitle.textContent = 'Welcome back';
+      authSubtitle.textContent = 'Sign in to your account';
+      authBenefits.style.display = 'none';
+      googleBtnText.textContent = 'Sign in with Google';
+    });
+
+    // Toggle to Sign Up screen
+    document.getElementById("switchToSignup")?.addEventListener('click', (e) => {
+      e.preventDefault();
+      signinForm.style.display = 'none';
+      signupForm.style.display = 'block';
+      authTitle.textContent = 'Create Account';
+      authSubtitle.textContent = 'Sign up to save your reminders forever';
+      authBenefits.style.display = 'block';
+      googleBtnText.textContent = 'Sign up with Google';
+    });
     const signinBtn = document.getElementById("signinBtn");
     const signinBanner = document.getElementById("signinBanner");
     const signinBannerBtn = document.getElementById("signinBannerBtn");
@@ -3981,158 +4008,53 @@ You can change these settings anytime from your account menu.
 
     // Simulate Google Sign-In (replace with real Google OAuth later)
     async function handleGoogleSignIn() {
-      // Check privacy policy agreement
-      if (!privacyCheckbox.checked) {
-        alert('⚠️ Please agree to the Privacy Policy and Terms of Service to continue.');
-        return;
-      }
-      
       try {
-        // IMPORTANT: Save current reminders BEFORE redirect to prevent data loss
         const currentReminders = localStorage.getItem(STORAGE_KEY);
         if (currentReminders && currentReminders !== '{}') {
           localStorage.setItem('123Reminder_pending_migration', currentReminders);
-          console.log('💾 Saved reminders for post-OAuth migration');
         }
-        
-        // Sign in with Google using Supabase
-        const { data, error} = await supabaseClient.auth.signInWithOAuth({
+        const { error } = await supabaseClient.auth.signInWithOAuth({
           provider: 'google',
-          options: {
-            redirectTo: 'https://123reminder.com'
-          }
+          options: { redirectTo: 'https://123reminder.com' }
         });
-
         if (error) throw error;
-
-        // Supabase will redirect to Google for authentication
-        // After successful auth, user will be redirected back here
-        // The session will be automatically established
-        
       } catch (error) {
-        console.error('Google sign-in error:', error);
-        alert(`❌ Google sign-in failed: ${error.message}\n\nPlease make sure Google OAuth is properly configured in Supabase.`);
+        alert(`❌ Google sign-in failed: ${error.message}`);
       }
     }
 
-    // Handle Email/Password Sign-In
+    // Handle Email Sign-Up (Create Account)
     async function handleEmailSignIn() {
-      // Check privacy policy agreement
-      if (!privacyCheckbox.checked) {
-        alert('⚠️ Please agree to the Privacy Policy and Terms of Service to continue.');
-        return;
-      }
-      
       const name = authName.value.trim();
       const email = authEmail.value.trim();
-      const password = authPassword.value.trim();
+      const password = authPassword.value;
+      const confirmPassword = authConfirmPassword?.value;
 
-      // Validation
-      if (!name) {
-        alert('⚠️ Please enter your name');
-        authName.focus();
-        return;
-      }
-
-      if (!email) {
-        alert('⚠️ Please enter your email address');
-        authEmail.focus();
-        return;
-      }
-
-      if (!email.includes('@')) {
-        alert('⚠️ Please enter a valid email address');
-        authEmail.focus();
-        return;
-      }
-
-      if (!password) {
-        alert('⚠️ Please enter your password');
-        authPassword.focus();
-        return;
-      }
-
-      if (password.length < 6) {
-        alert('⚠️ Password must be at least 6 characters');
-        authPassword.focus();
-        return;
-      }
+      if (!name) { alert('⚠️ Please enter your name'); authName.focus(); return; }
+      if (!email || !email.includes('@')) { alert('⚠️ Please enter a valid email'); authEmail.focus(); return; }
+      if (!password || password.length < 6) { alert('⚠️ Password must be at least 6 characters'); authPassword.focus(); return; }
+      if (confirmPassword !== undefined && password !== confirmPassword) { alert('⚠️ Passwords do not match'); authConfirmPassword.focus(); return; }
 
       try {
-        // Try to sign in first
-        let { data, error } = await supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password,
+        const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: { data: { name } }
         });
 
-        // If sign in fails, try to sign up
-        if (error && error.message.includes('Invalid login credentials')) {
-          const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
-            email: email,
-            password: password,
-            options: {
-              data: {
-                name: name
-              }
-            }
-          });
+        if (signUpError) throw signUpError;
 
-          if (signUpError) throw signUpError;
-          
-          // Update profile in database
-          await supabaseClient.from('profiles').upsert({
-            id: signUpData.user.id,
-            email: email,
-            name: name,
-            updated_at: new Date().toISOString()
-          });
-          
-          data = signUpData;
-          alert(`✅ Account created! Welcome ${name}!`);
-        } else if (error) {
-          throw error;
-        } else {
-          // User signed in - update name if provided
-          if (name && name !== data.user.user_metadata?.name) {
-            await supabaseClient.auth.updateUser({
-              data: { name: name }
-            });
-            
-            // Update profile in database
-            await supabaseClient.from('profiles').upsert({
-              id: data.user.id,
-              email: email,
-              name: name,
-              updated_at: new Date().toISOString()
-            });
-          }
-          alert(`✅ Welcome back, ${name || email}!`);
-        }
-
-        // Set current user
-        currentUser = {
-          id: data.user.id,
-          email: data.user.email,
-          name: name || data.user.user_metadata?.name || email.split('@')[0],
-        };
-
-        // Load reminders from database
-        await loadRemindersFromDB();
-        
-        updateUIForSignedInUser();
         hideAuthModal();
-        
-        // Clear form
         authName.value = '';
         authEmail.value = '';
         authPassword.value = '';
-        
-        // Render calendar with loaded data
-        renderCalendar();
-        
+        if (authConfirmPassword) authConfirmPassword.value = '';
+
+        alert(`✅ Welcome ${name}!\n\nPlease check your email (${email}) and click the verification link to activate your account.`);
+
       } catch (error) {
-        console.error('Auth error:', error);
-        alert(`❌ Error: ${error.message}`);
+        console.error('Sign up error:', error);
+        alert('⚠️ ' + (error.message || 'Could not create account. Please try again.'));
       }
     }
 
@@ -4178,7 +4100,20 @@ You can change these settings anytime from your account menu.
     signinBannerBtn.addEventListener('click', showAuthModal);
     googleSigninBtn.addEventListener('click', handleGoogleSignIn);
     emailSigninBtn.addEventListener('click', handleEmailSignIn);
-    skipSignin.addEventListener('click', hideAuthModal);
+
+    // Sign In form submit
+    signinBtn2?.addEventListener('click', async () => {
+      const email = signinEmail.value.trim();
+      const password = signinPassword.value;
+      if (!email || !password) { alert('⚠️ Please enter your email and password'); return; }
+      try {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        hideAuthModal();
+      } catch (error) {
+        alert('⚠️ ' + (error.message || 'Could not sign in. Please check your credentials.'));
+      }
+    });
     
     if (signOutBtn) {
       signOutBtn.addEventListener('click', handleSignOut);
