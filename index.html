@@ -3143,6 +3143,10 @@
     const weekdayRowEl = document.getElementById("weekdayRow");
     const calendarGridEl = document.getElementById("calendarGrid");
     const searchInputEl = document.getElementById("searchInput");
+    // Chrome ignores autocomplete="off" — force-clear after page load to prevent autofill
+    window.addEventListener('load', () => {
+      setTimeout(() => { if (searchInputEl) searchInputEl.value = ''; }, 300);
+    });
     const viewSelector = document.getElementById("viewSelector");
     
     // Auth elements
