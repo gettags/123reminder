@@ -4242,7 +4242,7 @@
       }
     }
     
-    function updateUIForSignedInUser() {
+    async function updateUIForSignedInUser() {
       if (currentUser) {
         // Hide sign-in elements
         if (signinBtn) signinBtn.style.display = 'none';
@@ -4251,6 +4251,22 @@
         // Show user profile and logout button
         if (userDropdown) userDropdown.style.display = 'block';
         if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+        
+        // Fetch authoritative notification preference from DB
+        // (so the toggle button reflects actual saved state on page load/refresh)
+        try {
+          const { data: notifEnabled, error } = await supabaseClient.rpc('get_my_notification_pref');
+          if (error) {
+            console.error('[notif] get_my_notification_pref error:', error.message);
+            currentUser.emailNotificationsEnabled = false;
+          } else {
+            currentUser.emailNotificationsEnabled = notifEnabled === true;
+          }
+          localStorage.setItem('123Reminder_user', JSON.stringify(currentUser));
+        } catch (e) {
+          console.error('[notif] get_my_notification_pref threw:', e.message);
+          currentUser.emailNotificationsEnabled = false;
+        }
         
         // Show email reminders button with correct state
         if (emailRemindersBtn) {
