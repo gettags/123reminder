@@ -3858,31 +3858,47 @@
       });
     });
 
+    // Anti-autofill: track whether the user has explicitly interacted with
+    // the search input. Until they have, any value appearing there is from
+    // browser autofill / password manager and gets cleared (otherwise it
+    // filters reminders to nothing and they appear to disappear).
+    let _searchUserInteracted = false;
+    const _markSearchInteracted = () => { _searchUserInteracted = true; };
+    searchInputEl.addEventListener('focus', _markSearchInteracted);
+    searchInputEl.addEventListener('pointerdown', _markSearchInteracted);
+    searchInputEl.addEventListener('touchstart', _markSearchInteracted, { passive: true });
+    searchInputEl.addEventListener('keydown', _markSearchInteracted);
+
+    const _killSearchAutofill = () => {
+      if (!_searchUserInteracted && searchInputEl.value) {
+        searchInputEl.value = '';
+        if (searchTerm) {
+          searchTerm = '';
+          renderCalendar();
+        }
+      }
+    };
+
     // Search
     searchInputEl.addEventListener('input', (e) => {
+      // If user hasn't actually interacted, this is browser autofill — ignore + clear
+      if (!_searchUserInteracted) {
+        e.target.value = '';
+        return;
+      }
       searchTerm = e.target.value;
       renderCalendar();
     });
 
-    // Aggressive anti-autofill safety net: clear any value that gets autofilled
-    // by Chrome/Edge despite the readonly trick (some versions still try).
-    (function preventSearchAutofill() {
-      if (!searchInputEl) return;
-      const clearIfNotTyped = () => {
-        // Only clear if the user hasn't actually typed anything (searchTerm is empty)
-        if (!searchTerm && searchInputEl.value) {
-          searchInputEl.value = '';
-        }
-      };
-      // Clear repeatedly during the first 2 seconds (browsers autofill at varying delays)
-      [50, 200, 500, 1000, 2000].forEach(t => setTimeout(clearIfNotTyped, t));
-      // Also clear when window finishes loading
-      window.addEventListener('load', clearIfNotTyped);
-      // Detect autofill via CSS animation hack (works in Chrome/Edge)
-      searchInputEl.addEventListener('animationstart', (e) => {
-        if (e.animationName === 'onAutoFillStart') clearIfNotTyped();
-      });
-    })();
+    // Poll aggressively for the first 10 seconds — Chrome's password manager
+    // can autofill 3-5 seconds after page load, well past any reasonable single-shot timer.
+    const _autofillPoller = setInterval(_killSearchAutofill, 100);
+    setTimeout(() => clearInterval(_autofillPoller), 10000);
+
+    // Detect autofill via CSS animation hack (Chrome/Edge fires this when :-webkit-autofill matches)
+    searchInputEl.addEventListener('animationstart', (e) => {
+      if (e.animationName === 'onAutoFillStart') _killSearchAutofill();
+    });
 
     // View switcher
     viewSelector.addEventListener('change', (e) => {
