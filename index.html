@@ -348,6 +348,15 @@
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
+    /* Autofill detection hook: when Chrome/Edge autofill this field,
+       :-webkit-autofill triggers, the animation fires, and our JS
+       listener clears the value. */
+    @keyframes onAutoFillStart { from {} to {} }
+    .search-input:-webkit-autofill {
+      animation-name: onAutoFillStart;
+      animation-duration: 0.001s;
+    }
+
     .search-icon {
       position: absolute;
       left: 16px;
@@ -2583,7 +2592,7 @@
         <!-- Search Bar -->
         <div class="search-container">
           <span class="search-icon">🔍</span>
-          <input type="search" class="search-input" id="searchInput" placeholder="Search reminders across all dates..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="reminder-search">
+          <input type="text" class="search-input" id="searchInput" placeholder="Search reminders across all dates..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="q_rd_no_autofill_xyz789" data-form-type="other" data-lpignore="true" data-1p-ignore="true" readonly onfocus="this.removeAttribute('readonly');">
         </div>
 
         <!-- Stats Dashboard -->
@@ -3854,6 +3863,26 @@
       searchTerm = e.target.value;
       renderCalendar();
     });
+
+    // Aggressive anti-autofill safety net: clear any value that gets autofilled
+    // by Chrome/Edge despite the readonly trick (some versions still try).
+    (function preventSearchAutofill() {
+      if (!searchInputEl) return;
+      const clearIfNotTyped = () => {
+        // Only clear if the user hasn't actually typed anything (searchTerm is empty)
+        if (!searchTerm && searchInputEl.value) {
+          searchInputEl.value = '';
+        }
+      };
+      // Clear repeatedly during the first 2 seconds (browsers autofill at varying delays)
+      [50, 200, 500, 1000, 2000].forEach(t => setTimeout(clearIfNotTyped, t));
+      // Also clear when window finishes loading
+      window.addEventListener('load', clearIfNotTyped);
+      // Detect autofill via CSS animation hack (works in Chrome/Edge)
+      searchInputEl.addEventListener('animationstart', (e) => {
+        if (e.animationName === 'onAutoFillStart') clearIfNotTyped();
+      });
+    })();
 
     // View switcher
     viewSelector.addEventListener('change', (e) => {
