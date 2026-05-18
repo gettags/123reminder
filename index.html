@@ -79,7 +79,7 @@
       box-shadow: var(--shadow-lg);
       padding: 24px;
       position: relative;
-      overflow: hidden;
+      overflow: visible; /* was hidden — clipped content and blocked mobile scroll */
     }
 
     .calendar-app::before {
@@ -2111,61 +2111,48 @@
     }
 
     @media (max-width: 768px) {
+      html, body { overflow-x: hidden; }
       body { padding: 0; }
-      
-      .app-container {
-        padding: 12px;
-        flex-direction: column;
-      }
-      
-      .calendar-app { padding: 16px; }
-      
-      .app-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-      
-      .logo-section {
-        width: 100%;
-        justify-content: space-between;
-      }
-      
-      .logo-section img {
-        height: 60px;
-      }
-      
-      .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-      }
-      
-      .stats-container {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      
-      .calendar-grid { gap: 6px; }
-      
-      .day-cell {
-        min-height: 80px;
-        padding: 6px;
-      }
-      
+      .app-container { padding: 10px; flex-direction: column; overflow-x: hidden; }
+      .calendar-app { padding: 14px; }
+      .app-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .logo-section { width: 100%; justify-content: space-between; }
+      .logo-section img { height: 50px; }
+      .header-actions { width: 100%; justify-content: flex-start; gap: 6px; flex-wrap: wrap; }
+      .action-btn { padding: 8px 10px; font-size: 13px; }
+      .stats-container { grid-template-columns: repeat(2, 1fr); }
+      .category-filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; gap: 6px; }
+      .category-pill { white-space: nowrap; flex-shrink: 0; }
+      .nav-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .nav-buttons { flex-wrap: wrap; gap: 4px; }
+      .calendar-title { align-self: center; }
+      .calendar-grid { gap: 4px; }
+      .day-cell { min-height: 70px; padding: 5px; }
       .month-display { font-size: 22px; }
       .year-display { font-size: 16px; }
-      
-      .bottom-ad-banner {
-        min-height: 80px;
-      }
+      .calendar-switcher-row { flex-wrap: wrap; }
+      .calendar-switcher { max-width: 100%; }
+      .bottom-ad-banner { min-height: 80px; }
+      .upgrade-banner { flex-direction: column; text-align: center; }
+      .upgrade-banner-content { text-align: center; }
+      .ad-sidebar { display: none !important; }
+    }
 
-      .upgrade-banner {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .upgrade-banner-content {
-        text-align: center;
-      }
+    @media (max-width: 480px) {
+      .calendar-app { padding: 10px; }
+      h1 { font-size: 22px; }
+      .action-btn { padding: 7px 9px; font-size: 12px; gap: 4px; }
+      .day-cell { min-height: 56px; padding: 4px 3px; }
+      .day-number { font-size: 10px !important; }
+      .reminder-chip { font-size: 9px; padding: 1px 4px; }
+      .weekday-header { font-size: 10px; padding: 4px 2px; }
+      .stat-value { font-size: 22px; }
+      .stat-label { font-size: 11px; }
+      .nav-btn { padding: 6px 8px; font-size: 12px; }
+      .month-display { font-size: 20px; }
+      .year-display { font-size: 14px; }
+      .search-input { font-size: 13px; padding: 10px 12px 10px 38px; }
+      .auth-modal, .notification-modal { width: 95vw; max-height: 90vh; overflow-y: auto; }
     }
     /* ============================================
        GANG CALENDAR STYLES
@@ -4045,14 +4032,19 @@
 
     function updateEmailBtn(enabled) {
       if (!emailRemindersBtn) return;
+      const mobile = window.innerWidth <= 480;
       if (enabled) {
-        emailRemindersBtn.innerHTML = '✅ Email Reminders Enabled &nbsp;·&nbsp; Click to Disable';
+        emailRemindersBtn.innerHTML = mobile ? '✅ Reminders ON' : '✅ Email Reminders Enabled &nbsp;·&nbsp; Click to Disable';
         emailRemindersBtn.style.background = 'linear-gradient(135deg, #64748b, #475569)';
       } else {
-        emailRemindersBtn.innerHTML = '📧 Enable Email Reminders';
+        emailRemindersBtn.innerHTML = mobile ? '📧 Enable' : '📧 Enable Email Reminders';
         emailRemindersBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
       }
     }
+    // Re-render button label if user rotates phone or resizes
+    window.addEventListener('resize', () => {
+      if (currentUser) updateEmailBtn(currentUser.emailNotificationsEnabled || false);
+    });
 
     // Simulate Google Sign-In (replace with real Google OAuth later)
     async function handleGoogleSignIn() {
