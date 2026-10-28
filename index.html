@@ -2495,6 +2495,9 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
 [data-theme="dark"] body{background:radial-gradient(ellipse at 0 0,#1b3552,transparent 55%),#0e1927}[data-theme="dark"] .brand-name{color:#edf4ff}[data-theme="dark"] .brand-blue{color:#88b8ff}[data-theme="dark"] .brand-tagline{color:#afc2d6}[data-theme="dark"] .upgrade-banner{background:linear-gradient(110deg,#1a3550,#1b3c33);border-color:#35594e}[data-theme="dark"] .upgrade-banner h3{color:#c5ebde}[data-theme="dark"] .upgrade-banner p{color:#afc2d6}[data-theme="dark"] .upgrade-btn{background:#266a58}[data-theme="dark"] .stat-card{background:var(--bg-card)}[data-theme="dark"] .stat-value{color:var(--navy)}[data-theme="dark"] .stat-card:nth-child(4) .stat-value{color:#8fc9de}[data-theme="dark"] .user-counter{background:var(--accent-light);border-color:var(--border-color)}[data-theme="dark"] .cat-work{background:#203d66!important;color:#b8d3ff!important}[data-theme="dark"] .cat-personal{background:#194535!important;color:#9ce8c2!important}[data-theme="dark"] .cat-health{background:#1b4444!important;color:#a0ded7!important}[data-theme="dark"] .cat-finance{background:#263d50!important;color:#bbd7ec!important}[data-theme="dark"] .cat-other{background:#2b384d!important;color:#c6d7ec!important}[data-theme="dark"] .day-cell.today{box-shadow:0 0 0 2px #244873}[data-theme="dark"] .auth-benefits{background:linear-gradient(120deg,var(--accent-light),var(--mint-bg))}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
+
+#cellContextMenu{position:fixed;z-index:30000;width:246px;padding:7px;border:1px solid var(--border-color);border-radius:13px;background:var(--bg-card);color:var(--text-primary);box-shadow:0 16px 48px rgb(10 30 55 / .23);max-height:calc(100dvh - 16px);overflow-y:auto}#cellContextMenu[hidden]{display:none}.cell-menu-title{padding:7px 10px 9px;font-size:12px;font-weight:700;color:var(--text-secondary);border-bottom:1px solid var(--border-color);margin-bottom:4px}#cellContextMenu button{display:block;text-align:left;width:100%;border:0;border-radius:7px;background:transparent;color:var(--text-primary);font-size:13px;padding:10px 11px;cursor:pointer}#cellContextMenu button:hover:not(:disabled),#cellContextMenu button:focus-visible{background:var(--accent-light);color:var(--accent-primary)}#cellContextMenu button:disabled{color:var(--text-secondary);opacity:.4;cursor:default}#calendarGrid[aria-busy="true"]{opacity:.65;pointer-events:none}
+
 </style>
 </head>
 <body>
@@ -3348,9 +3351,11 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
 
         if (error) throw error;
         console.log('Saved to database successfully!');
+        return true;
       } catch (error) {
         console.error('Error saving reminders:', error);
         alert('⚠️ Failed to save to cloud. Please try again.');
+        return false;
       }
     }
 
@@ -3458,6 +3463,7 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
       
       const cell = document.createElement("div");
       cell.className = "day-cell";
+      cell.dataset.date = dateKey; cell.tabIndex = 0;
       
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         cell.classList.add("weekend");
@@ -3580,6 +3586,7 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
           const dateKey = formatDateKey(displayYear, displayMonthIdx, displayDay);
           const dayEl = document.createElement("div");
           dayEl.className = "year-view-day";
+          dayEl.dataset.date = dateKey; dayEl.tabIndex = 0;
           dayEl.textContent = displayDay;
 
           if (isOtherMonth) dayEl.classList.add("other-month");
@@ -3663,6 +3670,7 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
         }
 
         const dateKey = formatDateKey(displayYear, displayMonthIdx, displayDay);
+        cell.dataset.date = dateKey; cell.tabIndex = 0;
 
         if (isOtherMonth) cell.classList.add("other-month");
 
@@ -4971,9 +4979,9 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
     const _originalSaveRemindersToDB = saveReminders;
     saveReminders = async function() {
       if (activeCalendarType === 'gang' && activeGangId) {
-        await saveGangRemindersToDB();
+        return await saveGangRemindersToDB();
       } else {
-        await _originalSaveRemindersToDB();
+        return await _originalSaveRemindersToDB();
       }
     };
 
@@ -4981,7 +4989,8 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
       if (!currentUser || !activeGangId) return;
       try {
         // Delete all gang reminders for this gang
-        await supabaseClient.from('gang_reminders').delete().eq('gang_id', activeGangId);
+        const {error: deleteError} = await supabaseClient.from('gang_reminders').delete().eq('gang_id', activeGangId);
+        if (deleteError) throw deleteError;
         // Reinsert
         const rows = [];
         for (const [date, list] of Object.entries(reminders)) {
@@ -4997,10 +5006,14 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
           }
         }
         if (rows.length > 0) {
-          await supabaseClient.from('gang_reminders').insert(rows);
+          const {error: insertError} = await supabaseClient.from('gang_reminders').insert(rows);
+          if (insertError) throw insertError;
         }
+        updateStats();
+        return true;
       } catch (e) {
         console.error('saveGangRemindersToDB error:', e.message);
+        return false;
       }
     }
 
@@ -5245,6 +5258,171 @@ h1{background:none;-webkit-text-fill-color:currentColor;color:var(--text-primary
       await _origEnsurePersonalUrl();
       await loadPrivacySetting();
     };
+
+// Calendar cell clipboard and context menu. Uses existing Supabase save functions.
+const cellMenu = document.createElement('div');
+cellMenu.id = 'cellContextMenu';
+cellMenu.setAttribute('role', 'menu');
+cellMenu.setAttribute('aria-label', 'Calendar cell actions');
+cellMenu.hidden = true;
+document.body.appendChild(cellMenu);
+let cellClipboard = null, cellUndo = null, cellBusy = false, menuOrigin = null, menuGeneration = 0;
+const cloneCell = value => JSON.parse(JSON.stringify(value));
+const cellCalendarKey = () => `${currentUser?.id || 'guest'}:${activeCalendarType}:${activeGangId || ''}`;
+const cellWritable = () => !!currentUser && !window._isPublicView && !cellBusy;
+function normalizeCellItems(items) {
+  if (!Array.isArray(items) || items.length > 500) throw new Error('Copy up to 500 reminders at a time.');
+  return items.map(item => {
+    const text = typeof item === 'string' ? item : item?.text;
+    if (typeof text !== 'string' || !text.trim() || text.length > 10000) throw new Error('Clipboard contains an invalid reminder.');
+    const category = ['work','personal','health','finance','other'].includes(item?.category) ? item.category : detectCategory(text);
+    const recurring = ['none','daily','weekly','monthly'].includes(item?.recurring) ? item.recurring : 'none';
+    return {text: text.trim(), category, recurring};
+  });
+}
+function parseCellClipboard(text) {
+  if (!text?.trim()) return [];
+  if (text.length > 250000) throw new Error('Clipboard text is too large.');
+  try {
+    const data = JSON.parse(text);
+    if (data?.type === '123Reminder.cell') return normalizeCellItems(data.items);
+  } catch (error) {
+    if (text.trim().startsWith('{') && text.includes('123Reminder.cell')) throw error;
+  }
+  return normalizeCellItems(text.split(/\r?\n/).map(t => t.trim()).filter(Boolean));
+}
+function closeCellMenu(restore = false) {
+  cellMenu.hidden = true; menuGeneration++;
+  if (restore && menuOrigin?.isConnected) menuOrigin.focus();
+}
+async function copyCalendarCell(date, cut = false) {
+  const items = normalizeCellItems(reminders[date] || []);
+  if (!items.length) return;
+  const text = JSON.stringify({type:'123Reminder.cell',version:1,items});
+  cellClipboard = {text, items, cut: cut ? {date, key:cellCalendarKey(), snapshot:JSON.stringify(reminders[date])} : null};
+  try { await navigator.clipboard.writeText(text); } catch (_) { /* In-app clipboard remains available. */ }
+  showToast(cut ? 'Cell ready to move. Paste into another date to finish.' : 'Whole cell copied.');
+}
+async function readCalendarClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text.trim()) { cellClipboard = null; return null; }
+    const items = parseCellClipboard(text);
+    if (cellClipboard?.text === text) return cellClipboard;
+    return {text,items,cut:null};
+  } catch (_) { return cellClipboard; }
+}
+async function saveGridChange(previous) {
+  if (activeCalendarType !== 'gang') return await saveReminders();
+  // Limit shared-calendar writes to the changed dates. Insert first so a failed
+  // insert cannot erase existing reminders; preserve IDs outside these cells.
+  const dates = [...new Set([...Object.keys(previous), ...Object.keys(reminders)])]
+    .filter(date => JSON.stringify(previous[date] || []) !== JSON.stringify(reminders[date] || []));
+  if (!dates.length) return true;
+  const {data:oldRows,error:readError} = await supabaseClient.from('gang_reminders').select('id').eq('gang_id',activeGangId).in('date',dates);
+  if(readError) throw readError;
+  const rows=dates.flatMap(date => (reminders[date] || []).map(item => ({gang_id:activeGangId,created_by:currentUser.id,date,...normalizeCellItems([item])[0]})));
+  let inserted=[];
+  if(rows.length){
+    const {data,error}=await supabaseClient.from('gang_reminders').insert(rows).select('id');
+    if(error) throw error;
+    inserted=data || [];
+  }
+  if(oldRows?.length){
+    const {error}=await supabaseClient.from('gang_reminders').delete().eq('gang_id',activeGangId).in('id',oldRows.map(row=>row.id));
+    if(error){
+      if(inserted.length){
+        const {error:cleanupError}=await supabaseClient.from('gang_reminders').delete().eq('gang_id',activeGangId).in('id',inserted.map(row=>row.id));
+        if(cleanupError) alert('The shared-calendar save could not finish or roll back. Refresh and check these dates before retrying.');
+      }
+      throw error;
+    }
+  }
+  return true;
+}
+async function commitCellChange(change, label, isUndo = false) {
+  if (!cellWritable()) return;
+  const key = cellCalendarKey(), previous = cloneCell(reminders);
+  cellBusy = true;
+  // Prevent switching calendars or submitting other edits during this save.
+  const locked = [...document.querySelectorAll('button,input,select,textarea')].filter(el => !el.disabled);
+  locked.forEach(el => el.disabled = true);
+  calendarGridEl.setAttribute('aria-busy','true');
+  try {
+    change(); renderCalendar();
+    const ok = await saveGridChange(previous);
+    if (ok !== true) throw new Error('Cloud save was not confirmed.');
+    if (!isUndo) cellUndo = {key, before:previous, after:JSON.stringify(reminders)};
+    else cellUndo = null;
+    showToast(label + ' Saved to cloud.');
+    return true;
+  } catch (error) {
+    if (key === cellCalendarKey()) { reminders = previous; renderCalendar(); }
+    showToast('Could not save this change. Your previous calendar is shown. Please retry.');
+    console.error('Cell edit failed:',error);
+    return false;
+  } finally {
+    cellBusy = false; locked.forEach(el => el.disabled = false);
+    calendarGridEl.removeAttribute('aria-busy');
+  }
+}
+async function pasteCalendarCell(date, payload) {
+  if (!payload?.items?.length || !cellWritable()) return;
+  const items = normalizeCellItems(payload.items), cut = payload.cut;
+  if (cut && cut.key !== cellCalendarKey()) { showToast('Paste cut cells into the same calendar. Use Copy to copy between calendars.'); return; }
+  if (cut?.date === date) return;
+  if (cut && JSON.stringify(reminders[cut.date]) !== cut.snapshot) { showToast('The source cell changed. Cut it again before pasting.'); return; }
+  const ok = await commitCellChange(() => {
+    reminders[date] = [...(reminders[date] || []), ...cloneCell(items)];
+    if (cut) delete reminders[cut.date];
+  }, cut ? 'Cell moved.' : 'Reminders pasted.');
+  if (ok && cut) { payload.cut = null; if (cellClipboard) cellClipboard.cut = null; }
+}
+async function showCellMenu(event, cell) {
+  event.preventDefault(); closeCellMenu();
+  const generation = menuGeneration, date = cell.dataset.date, key = cellCalendarKey();
+  menuOrigin = cell; cellMenu.replaceChildren();
+  const title = document.createElement('div'); title.className='cell-menu-title'; title.textContent=date; cellMenu.appendChild(title);
+  const add = (label, enabled, action) => {
+    const button = document.createElement('button'); button.type='button'; button.textContent=label;
+    button.setAttribute('role','menuitem'); button.disabled=!enabled;
+    button.addEventListener('click', async () => { closeCellMenu(); if (key !== cellCalendarKey()) return; try { await action(); } catch(error) { showToast(error.message || 'This action could not be completed.'); } });
+    cellMenu.appendChild(button); return button;
+  };
+  const hasItems=!!reminders[date]?.length, writable=cellWritable();
+  add('Edit / Add reminders…',writable,()=>{const [y,m,d]=date.split('-').map(Number);openReminderModal(date,y,m-1,d);});
+  add('Copy whole cell',hasItems&&!cellBusy,()=>copyCalendarCell(date));
+  add('Cut whole cell',hasItems&&writable,()=>copyCalendarCell(date,true));
+  let payload=cellClipboard;
+  const paste = add('Paste into cell',writable&&!!payload?.items?.length,()=>pasteCalendarCell(date,payload));
+  add('Paste text…',writable,async()=>{const text=prompt('Paste your text here (Ctrl+V). Each line becomes a reminder.');if(text?.trim())await pasteCalendarCell(date,{items:parseCellClipboard(text),cut:null});});
+  add('Delete all reminders…',hasItems&&writable,()=>{if(confirm(`Delete all ${reminders[date].length} reminder(s) on ${date}?`))return commitCellChange(()=>delete reminders[date],'Cell cleared.');});
+  add('Undo last grid change',writable&&cellUndo?.key===key,async()=>{
+    if(JSON.stringify(reminders)!==cellUndo.after){showToast('The calendar changed since that action. Undo is no longer available.');return;}
+    const previous=cloneCell(cellUndo.before);await commitCellChange(()=>{reminders=previous;},'Change undone.',true);
+  });
+  cellMenu.hidden=false;
+  const rect=cell.getBoundingClientRect();
+  cellMenu.style.left=Math.max(8,Math.min(event.clientX || rect.left,window.innerWidth-cellMenu.offsetWidth-8))+'px';
+  cellMenu.style.top=Math.max(8,Math.min(event.clientY || rect.top,window.innerHeight-cellMenu.offsetHeight-8))+'px';
+  cellMenu.querySelector('button:not(:disabled)')?.focus();
+  payload=await readCalendarClipboard();
+  if(generation!==menuGeneration || cellMenu.hidden)return;
+  paste.disabled=!cellWritable()||!payload?.items?.length;
+  paste.title=payload?.items?.length ? 'Appends reminders; keeps existing reminders.' : 'Copy a calendar cell or text first. Use Paste text if your browser blocks clipboard access.';
+}
+calendarGridEl.addEventListener('contextmenu',event=>{const cell=event.target.closest('[data-date]');if(cell&&!cellBusy)showCellMenu(event,cell);});
+calendarGridEl.addEventListener('keydown',event=>{if(event.key==='ContextMenu'||(event.shiftKey&&event.key==='F10')){const cell=event.target.closest('[data-date]');if(cell&&!cellBusy)showCellMenu(event,cell);}});
+calendarGridEl.addEventListener('dblclick',event=>{if(cellBusy){event.preventDefault();event.stopImmediatePropagation();}},true);
+cellMenu.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.preventDefault();closeCellMenu(true);return;}
+  if(event.key==='Tab'){closeCellMenu();return;}
+  const items=[...cellMenu.querySelectorAll('button:not(:disabled)')], index=items.indexOf(document.activeElement);
+  if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)&&items.length){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?items.length-1:(index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;items[next].focus();}
+});
+document.addEventListener('pointerdown',event=>{if(!cellMenu.contains(event.target))closeCellMenu();});
+window.addEventListener('resize',()=>closeCellMenu());
+document.addEventListener('scroll',()=>closeCellMenu(),true);
 
     // Start the app
     initializeApp();
