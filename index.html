@@ -2452,7 +2452,17 @@
     }
     .readonly-badge.visible { display: block; }
 
-  </style>
+  
+/* Interface improvements: existing data and authentication integrations retained. */
+.header-actions{gap:8px;align-items:center}.header-actions .action-btn:not(.primary){background:var(--bg-card)!important;color:var(--text-primary)!important;border:1px solid var(--border-color)!important;box-shadow:none}
+#quickAddBtn{font-weight:700;padding:12px 18px}.stats-container{gap:8px;margin:12px 0}.stat-card{padding:10px 8px;box-shadow:none}.stat-value{font-size:24px}.upgrade-banner{padding:10px 14px;margin-bottom:12px}
+.ad-sidebar .ad-box:nth-child(n+3){display:none}.ad-sidebar .ad-box.large{height:300px;min-height:300px}.bottom-ad-banner:has(.ad-placeholder){display:none}
+.reminder-pill{font-size:12px!important;line-height:1.5!important;min-height:22px}.reminder-pill.cat-other{color:#5923ad!important;background:#eee5ff!important}.reminder-pill:hover{white-space:normal;overflow:visible;overflow-wrap:anywhere;position:relative;z-index:2}
+#prevYearBtn,#nextYearBtn{display:none}.year-control{display:inline-flex;align-items:center;gap:6px;font-size:12px}.year-control input{width:76px;padding:6px;border:1px solid var(--border-color);border-radius:6px;background:var(--bg-card);color:var(--text-primary)}
+.auth-container{max-height:calc(100dvh - 32px);overflow-y:auto}.auth-close{position:absolute;right:14px;top:10px;border:0;background:transparent;color:var(--text-primary);font-size:26px;cursor:pointer}.auth-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}.password-toggle{display:block;margin:5px 0 0 auto;border:0;background:transparent;color:var(--accent-primary);cursor:pointer;font-size:12px;padding:4px}.auth-benefits{padding:12px!important}.auth-logo{font-size:32px!important}.auth-header{margin-bottom:16px!important}#authFeedback:not([hidden]){padding:12px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-primary);font-size:14px}button:disabled{opacity:.65;cursor:wait}:focus-visible{outline:3px solid var(--accent-primary);outline-offset:3px}
+@media(max-width:600px){.header-actions{flex-wrap:wrap}.reminder-pill{font-size:11px!important}.auth-container{padding:24px!important}.year-control{margin-top:4px}}
+
+</style>
 </head>
 <body>
   <!-- Login reminder toast for non-authenticated users -->
@@ -2510,7 +2520,7 @@
 
 
           <div class="header-actions">
-            <button class="action-btn primary" id="quickAddBtn">⚡ Quick Add Today</button>
+            <button class="action-btn primary" id="quickAddBtn">＋ Add Reminder</button>
             
             <!-- Sign In Button (shown when not signed in) -->
             <button class="action-btn" id="signinBtn" style="display: inline-flex;">👤 Sign In</button>
@@ -2559,7 +2569,7 @@
         <!-- Sign In Banner (Show for Non-Signed In Users) -->
         <div class="signin-banner" id="signinBanner">
           <div class="signin-banner-text">
-            <h4>⚠️ Sign in to save your reminders forever</h4>
+            <h4>⚠️ Sign in to sync your reminders</h4>
             <p>Your data is currently saved locally. Sign in to sync across devices & get notifications!</p>
           </div>
           <button class="signin-banner-btn" id="signinBannerBtn">Sign In</button>
@@ -2632,7 +2642,7 @@
           <select class="calendar-switcher" id="calendarSwitcher">
             <option value="personal">My Personal Calendar</option>
           </select>
-          <button class="btn-create-gang" id="createGangBtn">🤝 Create GANG</button>
+          <button class="btn-create-gang" id="createGangBtn">🤝 Create shared calendar</button>
         </div>
 
         <!-- Category Filters -->
@@ -2649,10 +2659,10 @@
         <div class="nav-header">
           <div class="nav-buttons">
             <button class="nav-btn" id="prevYearBtn" title="Previous Year">◀️ Year</button>
-            <button class="nav-btn" id="prevMonthBtn" title="Previous Month">◀️</button>
+            <button class="nav-btn" id="prevMonthBtn" title="Previous Month" aria-label="Previous month">Previous</button>
             <button class="nav-btn" id="todayBtn" title="Go to Today">📍 Today</button>
-            <button class="nav-btn" id="nextMonthBtn" title="Next Month">▶️</button>
-            <button class="nav-btn" id="nextYearBtn" title="Next Year">Year ▶️</button>
+            <button class="nav-btn" id="nextMonthBtn" title="Next Month" aria-label="Next month">Next</button>
+            <button class="nav-btn" id="nextYearBtn" title="Next Year">Year ▶️</button><label class="year-control">Year <input id="calendarYearInput" type="number" min="1" max="9999" aria-label="Calendar year"></label>
           </div>
           <div class="calendar-title">
             <div class="month-display" id="monthLabel"></div>
@@ -2763,17 +2773,16 @@
   </div>
 
   <!-- Authentication Modal -->
-  <div class="auth-modal" id="authModal">
-    <div class="auth-container">
+  <div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle" aria-describedby="authSubtitle">
+    <div class="auth-container" style="position:relative"><button type="button" id="closeAuthBtn" aria-label="Close account dialog" class="auth-close">×</button>
       <div class="auth-header">
         <div class="auth-logo">📅</div>
         <h2 class="auth-title" id="authTitle">Create Account</h2>
-        <p class="auth-subtitle" id="authSubtitle">Sign up to save your reminders forever</p>
+        <p class="auth-subtitle" id="authSubtitle">Sync your reminders across devices</p>
       </div>
 
       <div class="auth-benefits" id="authBenefits">
-        <div class="auth-benefit">✅ Save reminders forever (cloud sync)</div>
-        <div class="auth-benefit">✅ Access from any device</div>
+        <div class="auth-benefit">✅ Cloud sync across your devices</div>
         <div class="auth-benefit">✅ Get daily email reminders</div>
         <div class="auth-benefit">✅ Share your calendar with friends</div>
       </div>
@@ -2791,19 +2800,20 @@
 
       <div class="auth-divider"><span>OR</span></div>
 
+      <p id="authFeedback" role="status" aria-live="polite" tabindex="-1" hidden></p>
       <!-- Sign Up Form -->
       <div id="signupForm">
         <div class="form-group">
-          <input type="text" class="auth-input" id="authName" placeholder="Your name (e.g. Sriteja, Rashmi)">
+          <label class="auth-label" for="authName">Your name</label><input type="text" class="auth-input" id="authName" placeholder="Your name (e.g. Sriteja, Rashmi)" autocomplete="name" aria-describedby="authFeedback">
         </div>
         <div class="form-group">
-          <input type="email" class="auth-input" id="authEmail" placeholder="Email address">
+          <label class="auth-label" for="authEmail">Email address</label><input type="email" class="auth-input" id="authEmail" placeholder="Email address" autocomplete="email" aria-describedby="authFeedback">
         </div>
         <div class="form-group">
-          <input type="password" class="auth-input" id="authPassword" placeholder="Password (min 6 characters)">
+          <label class="auth-label" for="authPassword">Password</label><input type="password" class="auth-input" id="authPassword" placeholder="Password (min 6 characters)" autocomplete="new-password" aria-describedby="authFeedback"><button type="button" class="password-toggle" data-password="authPassword" aria-controls="authPassword" aria-pressed="false">Show password</button>
         </div>
         <div class="form-group">
-          <input type="password" class="auth-input" id="authConfirmPassword" placeholder="Confirm password">
+          <label class="auth-label" for="authConfirmPassword">Confirm password</label><input type="password" class="auth-input" id="authConfirmPassword" placeholder="Confirm password" autocomplete="new-password" aria-describedby="authFeedback"><button type="button" class="password-toggle" data-password="authConfirmPassword" aria-controls="authConfirmPassword" aria-pressed="false">Show password</button>
         </div>
         <button class="auth-submit-btn" id="emailSigninBtn">Create Account</button>
         <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary);">
@@ -2814,10 +2824,10 @@
       <!-- Sign In Form -->
       <div id="signinForm" style="display:none;">
         <div class="form-group">
-          <input type="email" class="auth-input" id="signinEmail" placeholder="Email address">
+          <label class="auth-label" for="signinEmail">Email address</label><input type="email" class="auth-input" id="signinEmail" placeholder="Email address" autocomplete="email" aria-describedby="authFeedback">
         </div>
         <div class="form-group">
-          <input type="password" class="auth-input" id="signinPassword" placeholder="Password">
+          <label class="auth-label" for="signinPassword">Password</label><input type="password" class="auth-input" id="signinPassword" placeholder="Password" autocomplete="current-password" aria-describedby="authFeedback"><button type="button" class="password-toggle" data-password="signinPassword" aria-controls="signinPassword" aria-pressed="false">Show password</button>
         </div>
         <button class="auth-submit-btn" id="signinBtn2">Sign In</button>
         <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-secondary);">
@@ -2826,7 +2836,7 @@
       </div>
 
       <div class="auth-note" style="margin-top:16px;">
-        By continuing, you agree to our <a href="#" style="color:var(--accent-primary);">Terms of Service</a> and <a href="#" style="color:var(--accent-primary);">Privacy Policy</a>.
+        Read our <a href="#privacyModal" id="signupPrivacyLink">Privacy Policy</a> to learn how we use your data.
       </div>
     </div>
   </div>
@@ -3180,7 +3190,7 @@
       signinForm.style.display = 'none';
       signupForm.style.display = 'block';
       authTitle.textContent = 'Create Account';
-      authSubtitle.textContent = 'Sign up to save your reminders forever';
+      authSubtitle.textContent = 'Sync your reminders across devices';
       authBenefits.style.display = 'block';
       googleBtnText.textContent = 'Sign up with Google';
     });
@@ -3449,6 +3459,13 @@
             const pill = document.createElement("div");
             pill.className = `reminder-pill cat-${category}`;
             pill.textContent = text.trim();
+            pill.title = text.trim();
+            pill.tabIndex = 0;
+            pill.setAttribute('role', 'button');
+            pill.setAttribute('aria-label', 'Read reminder: ' + text.trim());
+            const readReminder = e => { e.stopPropagation(); showReminderPreview(text.trim()); };
+            pill.addEventListener('click', readReminder);
+            pill.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); readReminder(e); } });
             
             if (recurring !== 'none') {
               const badge = document.createElement("span");
@@ -3650,6 +3667,13 @@
             const pill = document.createElement("div");
             pill.className = `reminder-pill cat-${category}`;
             pill.textContent = text.trim();
+            pill.title = text.trim();
+            pill.tabIndex = 0;
+            pill.setAttribute('role', 'button');
+            pill.setAttribute('aria-label', 'Read reminder: ' + text.trim());
+            const readReminder = e => { e.stopPropagation(); showReminderPreview(text.trim()); };
+            pill.addEventListener('click', readReminder);
+            pill.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); readReminder(e); } });
             
             if (recurring !== 'none') {
               const badge = document.createElement("span");
@@ -3901,12 +3925,26 @@
     });
 
     // --- Authentication Functions ---
+    let authReturnFocus;
+    function escapeHTML(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function authFeedback(message, error = false) {
+      const feedback = document.getElementById('authFeedback');
+      feedback.hidden = false; feedback.textContent = message;
+      feedback.style.color = error ? 'var(--danger)' : 'var(--text-primary)';
+      feedback.focus();
+    }
     function showAuthModal() {
+      authReturnFocus = document.activeElement;
+      document.getElementById('authFeedback').hidden = true;
+      setTimeout(() => (signinForm.style.display === 'none' ? authName : signinEmail).focus(), 0);
       authModal.style.display = 'flex';
     }
 
     function hideAuthModal() {
       authModal.style.display = 'none';
+      authReturnFocus?.focus();
       // If user signed in while viewing someone else's calendar, redirect to their own
       if (currentUser?.calendarSlug) {
         const currentPath = window.location.pathname.replace(/^\//, '').trim();
@@ -4066,16 +4104,20 @@
 
     // Handle Email Sign-Up (Create Account)
     async function handleEmailSignIn() {
+      if (emailSigninBtn.disabled) return;
       const name = authName.value.trim();
       const email = authEmail.value.trim();
       const password = authPassword.value;
       const confirmPassword = authConfirmPassword?.value;
 
-      if (!name) { alert('⚠️ Please enter your name'); authName.focus(); return; }
-      if (!email || !email.includes('@')) { alert('⚠️ Please enter a valid email'); authEmail.focus(); return; }
-      if (!password || password.length < 6) { alert('⚠️ Password must be at least 6 characters'); authPassword.focus(); return; }
-      if (confirmPassword !== undefined && password !== confirmPassword) { alert('⚠️ Passwords do not match'); authConfirmPassword.focus(); return; }
+      if (!name) { authFeedback('Please enter your name.', true); authName.focus(); return; }
+      if (!email || !authEmail.checkValidity()) { authFeedback('Please enter a valid email address.', true); authEmail.focus(); return; }
+      if (!password || password.length < 6) { authFeedback('Password must be at least 6 characters.', true); authPassword.focus(); return; }
+      if (confirmPassword !== undefined && password !== confirmPassword) { authFeedback('Passwords do not match.', true); authConfirmPassword.focus(); return; }
 
+      emailSigninBtn.disabled = true;
+      emailSigninBtn.textContent = 'Creating account…';
+      emailSigninBtn.setAttribute('aria-busy', 'true');
       try {
         const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
           email,
@@ -4085,17 +4127,20 @@
 
         if (signUpError) throw signUpError;
 
-        hideAuthModal();
         authName.value = '';
         authEmail.value = '';
         authPassword.value = '';
         if (authConfirmPassword) authConfirmPassword.value = '';
 
-        alert(`✅ Welcome ${name}!\n\nPlease check your email (${email}) and click the verification link to activate your account.`);
+        authFeedback(signUpData.session ? 'Your account is ready. You can close this dialog.' : `Check your email (${email}) and follow the verification link to activate your account. You can close this dialog and sign in after verification.`);
 
       } catch (error) {
         console.error('Sign up error:', error);
-        alert('⚠️ ' + (error.message || 'Could not create account. Please try again.'));
+        authFeedback(error.message || 'Could not create account. Please try again.', true);
+      } finally {
+        emailSigninBtn.disabled = false;
+        emailSigninBtn.textContent = 'Create Account';
+        emailSigninBtn.removeAttribute('aria-busy');
       }
     }
 
@@ -4507,10 +4552,10 @@
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                   <div>
                     <div style="font-weight: 600; font-size: 16px; color: var(--text-primary); margin-bottom: 4px;">
-                      ${typeEmoji} ${msg.name}
+                      ${typeEmoji} ${escapeHTML(msg.name)}
                     </div>
                     <div style="font-size: 13px; color: var(--text-secondary);">
-                      📧 ${msg.email}
+                      📧 ${escapeHTML(msg.email)}
                     </div>
                   </div>
                   <div style="font-size: 12px; color: var(--text-secondary); text-align: right;">
@@ -4518,7 +4563,7 @@
                   </div>
                 </div>
                 <div style="background: var(--bg-primary); padding: 12px; border-radius: 8px; font-size: 14px; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap;">
-                  ${msg.message}
+                  ${escapeHTML(msg.message)}
                 </div>
                 ${msg.user_id ? `<div style="margin-top: 8px; font-size: 12px; color: var(--text-secondary);">🔐 Signed in user</div>` : ''}
               </div>
@@ -5170,6 +5215,48 @@
 
     // Start the app
     initializeApp();
-  </script>
+  
+// Local interface behavior; no additional network or database calls.
+document.getElementById('closeAuthBtn').addEventListener('click', hideAuthModal);
+document.getElementById('signupPrivacyLink').addEventListener('click', e => { openPrivacyModal(e); document.getElementById('closePrivacyModal').focus(); });
+document.querySelectorAll('[data-password]').forEach(button => button.addEventListener('click', () => {
+  const input = document.getElementById(button.dataset.password);
+  const show = input.type === 'password'; input.type = show ? 'text' : 'password';
+  button.textContent = show ? 'Hide password' : 'Show password'; button.setAttribute('aria-pressed', String(show));
+}));
+authModal.addEventListener('keydown', e => {
+  if (privacyModal.style.display === 'flex') return;
+  if (e.key === 'Escape') { e.preventDefault(); hideAuthModal(); }
+  if (e.key === 'Enter' && e.target.matches('input') && signupForm.style.display !== 'none') { e.preventDefault(); handleEmailSignIn(); }
+  if (e.key !== 'Tab') return;
+  const items = [...authModal.querySelectorAll('button,a,input,[tabindex="0"]')].filter(el => !el.disabled && el.getClientRects().length);
+  const first = items[0], last = items[items.length-1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+const yearInput = document.getElementById('calendarYearInput');
+yearInput.value = currentYear;
+yearInput.addEventListener('change', () => { const value = Number(yearInput.value); if (Number.isInteger(value) && value >= 1 && value <= 9999) { currentYear = value; renderCalendar(); } yearInput.value = currentYear; });
+document.querySelectorAll('#prevMonthBtn,#nextMonthBtn,#todayBtn').forEach(button => button.addEventListener('click', () => { yearInput.value = currentYear; }));
+
+function showReminderPreview(text) {
+  document.getElementById('reminderPreviewText').textContent = text;
+  document.getElementById('reminderPreview').showModal();
+}
+for (const id of ['switchToSignin','switchToSignup']) document.getElementById(id).addEventListener('click', () => {
+  document.getElementById('authFeedback').hidden = true;
+  (id === 'switchToSignin' ? signinEmail : authName).focus();
+});
+privacyModal.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.preventDefault(); closePrivacyModalFunc(); document.getElementById('signupPrivacyLink').focus(); }
+  if (e.key === 'Tab') {
+    const items = [...privacyModal.querySelectorAll('button,a,input')].filter(el => !el.disabled && el.getClientRects().length);
+    const first=items[0],last=items[items.length-1];
+    if (e.shiftKey && document.activeElement===first) { e.preventDefault(); last.focus(); }
+    if (!e.shiftKey && document.activeElement===last) { e.preventDefault(); first.focus(); }
+  }
+});
+</script>
+<dialog id="reminderPreview" aria-labelledby="reminderPreviewTitle" style="max-width:min(90vw,520px);border:1px solid var(--border-color);border-radius:12px;padding:24px;background:var(--bg-card);color:var(--text-primary)"><h2 id="reminderPreviewTitle">Reminder</h2><p id="reminderPreviewText" style="white-space:pre-wrap;overflow-wrap:anywhere"></p><form method="dialog"><button class="nav-btn">Close</button></form></dialog>
 </body>
 </html>
